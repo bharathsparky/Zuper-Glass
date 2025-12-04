@@ -73,12 +73,12 @@ const sampleInspections = [
 ];
 
 const samplePhotos = [
-  { id: 'p1', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date().toISOString(), hasIssue: true },
-  { id: 'p2', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date(Date.now() - 300000).toISOString(), hasIssue: false },
-  { id: 'p3', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date(Date.now() - 600000).toISOString(), hasIssue: true },
-  { id: 'p4', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date(Date.now() - 900000).toISOString(), hasIssue: false },
+  { id: 'p1', thumbnail: '/assets/roof.jpg', timestamp: new Date().toISOString(), hasIssue: true },
+  { id: 'p2', thumbnail: '/assets/figma-assets/b1a1c0916bdb66e9db5731c51c4fbb07d1abfb38.png', timestamp: new Date(Date.now() - 300000).toISOString(), hasIssue: false },
+  { id: 'p3', thumbnail: '/assets/figma-assets/56df3619d8df85708e8adc185a252e252435c1fc.png', timestamp: new Date(Date.now() - 600000).toISOString(), hasIssue: true },
+  { id: 'p4', thumbnail: '/assets/figma-assets/5325763621f455fe5b2c718c4ff4d2c76be65ac9.png', timestamp: new Date(Date.now() - 900000).toISOString(), hasIssue: false },
   { id: 'p5', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date(Date.now() - 1200000).toISOString(), hasIssue: false },
-  { id: 'p6', thumbnail: '/assets/figma-assets/4c915fdcd5c975eda61c351287eaef3f0e5aa4aa.png', timestamp: new Date(Date.now() - 1500000).toISOString(), hasIssue: true },
+  { id: 'p6', thumbnail: '/assets/roof.jpg', timestamp: new Date(Date.now() - 1500000).toISOString(), hasIssue: true },
 ];
 
 const sampleNotes = [
@@ -468,6 +468,8 @@ export const InspectionDetailsPage = ({
   onAddNote,
   isDark = false 
 }) => {
+  const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'notes'
+  const [showNoteMenu, setShowNoteMenu] = useState(false);
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
   
@@ -558,7 +560,7 @@ export const InspectionDetailsPage = ({
               }}
               whileTap={{ scale: 0.9 }}
             >
-              <MoreVertical className="w-[20px] h-[20px] text-white" />
+              <Edit3 className="w-[18px] h-[18px] text-white" />
             </motion.button>
           </div>
         </div>
@@ -678,330 +680,255 @@ export const InspectionDetailsPage = ({
             </motion.button>
           </div>
           
-          {/* Photos Section */}
-          <div className="mb-[20px]">
-            <div className="flex items-center justify-between mb-[12px]">
-              <p className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
-                Photos ({inspection.stats.photos})
-              </p>
-              <div className="flex items-center gap-[4px]">
-                <span className="font-['Inter'] text-[12px]" style={{ color: accentColors.primary }}>
-                  See all
-                </span>
-                <ChevronRight className="w-[14px] h-[14px]" style={{ color: accentColors.primary }} />
-              </div>
-            </div>
-            
-            {/* Photo Grid */}
-            <div className="grid grid-cols-4 gap-[8px]">
-              {samplePhotos.slice(0, 4).map((photo, i) => (
-                <div 
-                  key={photo.id}
-                  className="aspect-square rounded-[12px] overflow-hidden relative"
-                  style={{
-                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <img 
-                    src={photo.thumbnail}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  {i === 3 && inspection.stats.photos > 4 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="font-['Inter'] font-semibold text-[14px] text-white">
-                        +{inspection.stats.photos - 4}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Notes Section */}
-          <div className="mb-[20px]">
-            <div className="flex items-center justify-between mb-[12px]">
-              <p className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
-                Notes ({inspection.stats.notes})
-              </p>
-              <div className="flex items-center gap-[4px]">
-                <span className="font-['Inter'] text-[12px]" style={{ color: accentColors.primary }}>
-                  See all
-                </span>
-                <ChevronRight className="w-[14px] h-[14px]" style={{ color: accentColors.primary }} />
-              </div>
-            </div>
-            
-            {/* Notes List */}
-            <div className="space-y-[10px]">
-              {sampleNotes.slice(0, 2).map((note) => (
-                <div 
-                  key={note.id}
-                  className="p-[14px] rounded-[14px]"
-                  style={{
-                    background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.8)',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-                  }}
-                >
-                  <div className="flex items-start gap-[12px]">
-                    <div 
-                      className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
-                      style={{ 
-                        background: note.severity === 'high' 
-                          ? 'rgba(239, 68, 68, 0.15)' 
-                          : note.severity === 'medium' 
-                            ? 'rgba(245, 158, 11, 0.15)' 
-                            : 'rgba(16, 185, 129, 0.15)' 
-                      }}
-                    >
-                      <FileText 
-                        className="w-[18px] h-[18px]" 
-                        style={{ 
-                          color: note.severity === 'high' 
-                            ? '#ef4444' 
-                            : note.severity === 'medium' 
-                              ? '#f59e0b' 
-                              : '#10b981' 
-                        }} 
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-['Inter'] font-semibold text-[13px] mb-[4px]" style={{ color: textColors.primary }}>
-                        {note.title}
-                      </p>
-                      <p className="font-['Inter'] text-[12px] line-clamp-2" style={{ color: textColors.muted }}>
-                        {note.content}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Info Card */}
-          <div 
-            className="rounded-[16px] overflow-hidden mb-[20px]"
-            style={{
-              background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.8)',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-              boxShadow: isDark ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.04)',
-            }}
-          >
-            <div className="p-[16px] flex items-center gap-[14px]">
-              <div 
-                className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center shrink-0"
-                style={{ background: `${accentColors.primary}15` }}
-              >
-                <Calendar className="w-[20px] h-[20px]" style={{ color: accentColors.primary }} />
-              </div>
-              <div className="flex-1">
-                <p className="font-['Inter'] text-[11px] uppercase tracking-wide mb-[2px]" style={{ color: textColors.muted }}>
-                  Created
-                </p>
-                <p className="font-['Inter'] font-semibold text-[15px]" style={{ color: textColors.primary }}>
-                  {formatDate(inspection.createdAt)}
-                </p>
-              </div>
-              <p className="font-['Inter'] text-[13px]" style={{ color: textColors.muted }}>
-                {formatTime(inspection.createdAt)}
-              </p>
-            </div>
-            
-            {inspection.customer && (
-              <>
-                <div 
-                  className="h-[1px] mx-[16px]"
-                  style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
-                />
-                <div className="p-[16px] flex items-center gap-[14px]">
-                  <div 
-                    className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center shrink-0"
-                    style={{ background: 'rgba(16, 185, 129, 0.15)' }}
-                  >
-                    <User className="w-[20px] h-[20px]" style={{ color: '#10b981' }} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-['Inter'] text-[11px] uppercase tracking-wide mb-[2px]" style={{ color: textColors.muted }}>
-                      Customer
-                    </p>
-                    <p className="font-['Inter'] font-semibold text-[15px]" style={{ color: textColors.primary }}>
-                      {inspection.customer.name}
-                    </p>
-                  </div>
-                  <ChevronRight className="w-[18px] h-[18px]" style={{ color: textColors.muted }} />
-                </div>
-              </>
-            )}
-          </div>
-          
-          {/* Location Map Preview */}
-          <div className="mb-[20px]">
-            <h3 className="font-['Inter'] font-semibold text-[13px] mb-[12px]" style={{ color: textColors.primary }}>
-              Site Location
-            </h3>
-            <motion.div 
-              className="relative rounded-[16px] overflow-hidden cursor-pointer"
-              style={{
-                background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.8)',
-                border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-                boxShadow: isDark ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.04)',
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* Map Image */}
-              <div className="relative h-[140px] overflow-hidden">
-                {/* Simulated Map Background */}
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    background: isDark
-                      ? `linear-gradient(135deg, #1a2744 0%, #243b55 50%, #1e3a5f 100%)`
-                      : `linear-gradient(135deg, #e8f4f8 0%, #d4e8ed 50%, #c5dde5 100%)`,
-                  }}
-                />
-                
-                {/* Map Grid Pattern */}
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'} 1px, transparent 1px),
-                      linear-gradient(90deg, ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'} 1px, transparent 1px)
-                    `,
-                    backgroundSize: '20px 20px',
-                  }}
-                />
-                
-                {/* Simulated Roads */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 140" preserveAspectRatio="none">
-                  <path 
-                    d="M 0,70 L 200,70" 
-                    stroke={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'} 
-                    strokeWidth="8" 
-                    fill="none"
-                  />
-                  <path 
-                    d="M 100,0 L 100,140" 
-                    stroke={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'} 
-                    strokeWidth="6" 
-                    fill="none"
-                  />
-                  <path 
-                    d="M 0,35 L 60,35 L 60,105 L 140,105 L 140,35 L 200,35" 
-                    stroke={isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'} 
-                    strokeWidth="4" 
-                    fill="none"
-                  />
-                </svg>
-                
-                {/* Location Pin */}
-                <div 
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full"
-                  style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}
-                >
-                  {/* Pin pulse animation */}
-                  <motion.div
-                    className="absolute top-[28px] left-1/2 -translate-x-1/2 w-[20px] h-[20px] rounded-full"
-                    style={{ background: `${accentColors.primary}40` }}
-                    animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  {/* Pin body */}
-                  <div 
-                    className="relative w-[36px] h-[44px] flex flex-col items-center"
-                  >
-                    <div 
-                      className="w-[36px] h-[36px] rounded-full flex items-center justify-center"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
-                        boxShadow: `0 4px 12px ${accentColors.primary}50`,
-                      }}
-                    >
-                      <MapPin className="w-[18px] h-[18px] text-white" />
-                    </div>
-                    <div 
-                      className="w-0 h-0 -mt-[2px]"
-                      style={{
-                        borderLeft: '8px solid transparent',
-                        borderRight: '8px solid transparent',
-                        borderTop: `10px solid ${accentColors.primary}`,
-                      }}
-                    />
-                  </div>
-                </div>
-                
-                {/* Gradient Overlay */}
-                <div 
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: isDark
-                      ? 'linear-gradient(180deg, transparent 50%, rgba(15, 23, 42, 0.5) 100%)'
-                      : 'linear-gradient(180deg, transparent 50%, rgba(255, 255, 255, 0.3) 100%)',
-                  }}
-                />
-              </div>
-              
-              {/* Address Footer */}
-              <div className="p-[14px] flex items-center justify-between">
-                <div className="flex items-center gap-[10px] flex-1 min-w-0">
-                  <div 
-                    className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center shrink-0"
-                    style={{ background: `${accentColors.primary}15` }}
-                  >
-                    <Navigation className="w-[14px] h-[14px]" style={{ color: accentColors.primary }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-['Inter'] font-medium text-[13px] truncate" style={{ color: textColors.primary }}>
-                      {inspection.address?.split(',')[0] || '123 Oak Street'}
-                    </p>
-                    <p className="font-['Inter'] text-[11px] truncate" style={{ color: textColors.muted }}>
-                      {inspection.address?.split(',').slice(1).join(',').trim() || 'Austin, TX 78701'}
-                    </p>
-                  </div>
-                </div>
-                <div 
-                  className="px-[12px] py-[6px] rounded-[8px] shrink-0"
-                  style={{ 
-                    background: `${accentColors.primary}15`,
-                    border: `1px solid ${accentColors.primary}30`,
-                  }}
-                >
-                  <span className="font-['Inter'] font-semibold text-[11px]" style={{ color: accentColors.primary }}>
-                    Directions
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-          
-          {/* Recent Activity Placeholder */}
+          {/* Tabs for Photos & Notes */}
           <div className="mb-[16px]">
-            <h3 className="font-['Inter'] font-semibold text-[13px] mb-[12px]" style={{ color: textColors.primary }}>
-              Recent Activity
-            </h3>
+            {/* Tab Headers */}
             <div 
-              className="p-[20px] rounded-[16px] flex flex-col items-center justify-center"
+              className="flex rounded-[12px] p-[4px] mb-[16px]"
               style={{
-                background: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.01)',
-                border: isDark ? '1px dashed rgba(255, 255, 255, 0.1)' : '1px dashed rgba(0, 0, 0, 0.08)',
+                background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
               }}
             >
-              <div 
-                className="w-[56px] h-[56px] rounded-full flex items-center justify-center mb-[12px]"
-                style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}
-              >
-                <Camera className="w-[24px] h-[24px]" style={{ color: textColors.muted }} />
-              </div>
-              <p className="font-['Inter'] font-medium text-[14px] mb-[4px]" style={{ color: textColors.primary }}>
-                Start documenting
-              </p>
-              <p className="font-['Inter'] text-[12px] text-center" style={{ color: textColors.muted }}>
-                Take photos or record notes to see activity here
-              </p>
+              {[
+                { id: 'photos', label: 'Photos', count: inspection.stats.photos, icon: Camera },
+                { id: 'notes', label: 'Notes', count: inspection.stats.notes, icon: FileText },
+              ].map((tab) => (
+                <motion.button
+                  key={tab.id}
+                  className="flex-1 flex items-center justify-center gap-[6px] py-[10px] rounded-[10px]"
+                  style={{
+                    background: activeTab === tab.id 
+                      ? isDark ? 'rgba(255, 255, 255, 0.1)' : '#ffffff'
+                      : 'transparent',
+                    boxShadow: activeTab === tab.id 
+                      ? isDark ? 'none' : '0 2px 8px rgba(0,0,0,0.06)'
+                      : 'none',
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  <tab.icon 
+                    className="w-[16px] h-[16px]" 
+                    style={{ 
+                      color: activeTab === tab.id ? accentColors.primary : textColors.muted 
+                    }} 
+                  />
+                  <span 
+                    className="font-['Inter'] font-medium text-[13px]"
+                    style={{ 
+                      color: activeTab === tab.id ? textColors.primary : textColors.muted 
+                    }}
+                  >
+                    {tab.label}
+                  </span>
+                  <span 
+                    className="font-['Inter'] font-semibold text-[11px] px-[6px] py-[2px] rounded-full"
+                    style={{ 
+                      background: activeTab === tab.id ? `${accentColors.primary}20` : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                      color: activeTab === tab.id ? accentColors.primary : textColors.muted,
+                    }}
+                  >
+                    {tab.count}
+                  </span>
+                </motion.button>
+              ))}
             </div>
+            
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              {activeTab === 'photos' ? (
+                <motion.div
+                  key="photos"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* Photo Grid */}
+                  <div className="grid grid-cols-3 gap-[8px]">
+                    {samplePhotos.map((photo, i) => (
+                      <div 
+                        key={photo.id}
+                        className="aspect-square rounded-[12px] overflow-hidden relative"
+                        style={{
+                          border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <img 
+                          src={photo.thumbnail}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        {photo.hasIssue && (
+                          <div 
+                            className="absolute top-[6px] right-[6px] w-[20px] h-[20px] rounded-full flex items-center justify-center"
+                            style={{ background: 'rgba(239, 68, 68, 0.9)' }}
+                          >
+                            <AlertCircle className="w-[12px] h-[12px] text-white" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Add Photo Button */}
+                  <motion.button
+                    className="w-full mt-[12px] py-[12px] rounded-[12px] flex items-center justify-center gap-[8px]"
+                    style={{
+                      background: isDark ? 'rgba(0, 122, 255, 0.15)' : 'rgba(0, 122, 255, 0.1)',
+                      border: '1px dashed rgba(0, 122, 255, 0.3)',
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={onTakePhoto}
+                  >
+                    <Plus className="w-[18px] h-[18px]" style={{ color: '#007AFF' }} />
+                    <span className="font-['Inter'] font-medium text-[13px]" style={{ color: '#007AFF' }}>
+                      Add Photo
+                    </span>
+                  </motion.button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="notes"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* Notes List */}
+                  <div className="space-y-[10px]">
+                    {sampleNotes.map((note) => (
+                      <div 
+                        key={note.id}
+                        className="p-[14px] rounded-[14px]"
+                        style={{
+                          background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.8)',
+                          border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
+                        }}
+                      >
+                        <div className="flex items-start gap-[12px]">
+                          <div 
+                            className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
+                            style={{ 
+                              background: note.severity === 'high' 
+                                ? 'rgba(239, 68, 68, 0.15)' 
+                                : note.severity === 'medium' 
+                                  ? 'rgba(245, 158, 11, 0.15)' 
+                                  : 'rgba(16, 185, 129, 0.15)' 
+                            }}
+                          >
+                            <FileText 
+                              className="w-[18px] h-[18px]" 
+                              style={{ 
+                                color: note.severity === 'high' 
+                                  ? '#ef4444' 
+                                  : note.severity === 'medium' 
+                                    ? '#f59e0b' 
+                                    : '#10b981' 
+                              }} 
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-['Inter'] font-semibold text-[13px] mb-[4px]" style={{ color: textColors.primary }}>
+                              {note.title}
+                            </p>
+                            <p className="font-['Inter'] text-[12px] line-clamp-2" style={{ color: textColors.muted }}>
+                              {note.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Add Note Button with Menu */}
+                  <div className="relative mt-[12px]">
+                    <motion.button
+                      className="w-full py-[12px] rounded-[12px] flex items-center justify-center gap-[8px]"
+                      style={{
+                        background: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)',
+                        border: '1px dashed rgba(16, 185, 129, 0.3)',
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowNoteMenu(!showNoteMenu)}
+                    >
+                      <Plus className="w-[18px] h-[18px]" style={{ color: '#10b981' }} />
+                      <span className="font-['Inter'] font-medium text-[13px]" style={{ color: '#10b981' }}>
+                        Add Note
+                      </span>
+                    </motion.button>
+                    
+                    {/* Note Creation Menu */}
+                    <AnimatePresence>
+                      {showNoteMenu && (
+                        <motion.div
+                          className="absolute bottom-full left-0 right-0 mb-[8px] rounded-[14px] overflow-hidden"
+                          style={{
+                            background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                          }}
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        >
+                          <motion.button
+                            className="w-full p-[14px] flex items-center gap-[12px]"
+                            style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)' }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              setShowNoteMenu(false);
+                              onAddNote?.('voice');
+                            }}
+                          >
+                            <div 
+                              className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                              style={{ background: `${accentColors.primary}20` }}
+                            >
+                              <Mic className="w-[20px] h-[20px]" style={{ color: accentColors.primary }} />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+                                Voice Note
+                              </p>
+                              <p className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                                Record with your voice
+                              </p>
+                            </div>
+                          </motion.button>
+                          
+                          <motion.button
+                            className="w-full p-[14px] flex items-center gap-[12px]"
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              setShowNoteMenu(false);
+                              onAddNote?.('type');
+                            }}
+                          >
+                            <div 
+                              className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                              style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
+                            >
+                              <FileText className="w-[20px] h-[20px]" style={{ color: textColors.primary }} />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+                                Type Note
+                              </p>
+                              <p className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                                Write manually
+                              </p>
+                            </div>
+                          </motion.button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+          
         </div>
       </div>
       
