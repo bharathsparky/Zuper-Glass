@@ -384,13 +384,13 @@ export default function App() {
               >
                 {/* Rich Mesh Gradient Background - Theme Aware */}
                 <div className="absolute inset-0 rounded-[16px]">
-                  {/* Base gradient layer - Dark: Deep teal, Light: Vibrant teal */}
+                  {/* Base gradient layer - Dark: Deep teal, Light: Darker teal for better contrast */}
                   <div 
                     className="absolute inset-0 rounded-[16px]"
                     style={{
                       background: isDarkMode 
                         ? "linear-gradient(135deg, #0f172a 0%, #0e4d64 25%, #0891b2 50%, #06b6d4 75%, #22d3ee 100%)"
-                        : "linear-gradient(135deg, #0ea5e9 0%, #0891b2 25%, #0e7490 50%, #0891b2 75%, #06b6d4 100%)"
+                        : "linear-gradient(135deg, #155e75 0%, #0e7490 25%, #0891b2 50%, #0e7490 75%, #164e63 100%)"
                     }}
                   />
                   {/* Radial overlay - warm accent bottom left */}

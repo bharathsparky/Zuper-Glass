@@ -488,11 +488,15 @@ const GlassDeviceCard = ({
     setRotation(prev => prev + (currentX - startXRef.current));
   };
 
-  const getBatteryColor = () => {
-    if (batteryLevel > 50) return '#10b981';
-    if (batteryLevel > 20) return '#f59e0b';
-    return '#ef4444';
+  // Battery fill color - visible inside the battery icon
+  const getBatteryFillColor = () => {
+    if (batteryLevel > 50) return '#4ade80'; // Bright green for good battery
+    if (batteryLevel > 20) return '#fbbf24'; // Yellow for medium
+    return '#f87171'; // Red for low
   };
+  
+  // Battery text color - always white for accessibility on teal background
+  const getBatteryTextColor = () => '#ffffff';
 
   return (
     <motion.div 
@@ -501,7 +505,7 @@ const GlassDeviceCard = ({
       animate={{ opacity: 1, y: 0 }}
       style={{
         // Dark mode: Deep teal/cyan gradient
-        // Light mode: Bright teal gradient matching Figma design
+        // Light mode: Darker teal gradient for better white text contrast
         background: isDark 
           ? `linear-gradient(135deg, 
               rgba(6, 78, 117, 0.95) 0%, 
@@ -511,19 +515,19 @@ const GlassDeviceCard = ({
               rgba(8, 62, 97, 0.95) 100%
             )`
           : `linear-gradient(135deg, 
-              #0ea5e9 0%, 
-              #0891b2 25%,
-              #0e7490 50%,
-              #0891b2 75%,
-              #06b6d4 100%
+              #155e75 0%, 
+              #0e7490 25%,
+              #0891b2 50%,
+              #0e7490 75%,
+              #164e63 100%
             )`,
         boxShadow: isDark 
           ? `0 20px 50px rgba(6, 78, 117, 0.3),
              0 8px 20px rgba(14, 116, 144, 0.2),
              inset 0 1px 0 rgba(255, 255, 255, 0.15)`
-          : `0 20px 50px rgba(14, 116, 144, 0.2),
-             0 8px 20px rgba(6, 182, 212, 0.15),
-             inset 0 1px 0 rgba(255, 255, 255, 0.25)`,
+          : `0 20px 50px rgba(21, 94, 117, 0.25),
+             0 8px 20px rgba(14, 116, 144, 0.2),
+             inset 0 1px 0 rgba(255, 255, 255, 0.15)`,
       }}
     >
       {/* Gradient overlays */}
@@ -565,34 +569,40 @@ const GlassDeviceCard = ({
           <div 
             className="flex items-center gap-[6px] px-[10px] py-[4px] rounded-full"
             style={{
-              background: isConnected ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-              border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+              background: isConnected ? 'rgba(0, 0, 0, 0.25)' : 'rgba(239, 68, 68, 0.3)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${isConnected ? 'rgba(74, 222, 128, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
             }}
           >
             <motion.div 
-              className={`w-[5px] h-[5px] rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`}
-              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+              className="w-[6px] h-[6px] rounded-full"
+              style={{ background: isConnected ? '#4ade80' : '#f87171' }}
+              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className={`font-['Inter'] font-semibold text-[10px] ${isConnected ? 'text-emerald-300' : 'text-red-300'}`}>
+            <span className="font-['Inter'] font-semibold text-[10px] text-white">
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
 
           <div 
             className="flex items-center gap-[6px] px-[8px] py-[4px] rounded-full"
-            style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}
+            style={{ 
+              background: 'rgba(0, 0, 0, 0.25)', 
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)' 
+            }}
           >
-            <div className="relative w-[22px] h-[10px] rounded-[2px] overflow-hidden" style={{ border: '1px solid rgba(255, 255, 255, 0.4)' }}>
+            <div className="relative w-[22px] h-[10px] rounded-[2px] overflow-hidden" style={{ border: '1px solid rgba(255, 255, 255, 0.5)' }}>
               <motion.div 
                 className="absolute left-[1px] top-[1px] bottom-[1px] rounded-[1px]"
-                style={{ width: `${batteryLevel}%`, maxWidth: 'calc(100% - 2px)', background: getBatteryColor() }}
+                style={{ width: `${batteryLevel}%`, maxWidth: 'calc(100% - 2px)', background: getBatteryFillColor() }}
                 initial={{ width: 0 }}
                 animate={{ width: `${batteryLevel}%` }}
                 transition={{ duration: 0.8 }}
               />
             </div>
-            <span className="font-['Inter'] font-bold text-[11px]" style={{ color: getBatteryColor() }}>{batteryLevel}%</span>
+            <span className="font-['Inter'] font-bold text-[11px]" style={{ color: getBatteryTextColor() }}>{batteryLevel}%</span>
           </div>
         </div>
 
