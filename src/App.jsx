@@ -4,6 +4,7 @@ import { GlassStripes } from "./components/GlassStripes";
 import { HomeIcon, PhotoIcon, MapIcon, CameraIcon, NotesIcon, PlusIcon, SignalIcon, WifiIcon, BatteryIcon, GlassTabIcon } from "./components/Icons";
 import { WeatherGreeting } from "./components/WeatherGreeting";
 import { GalleryPage } from "./components/GalleryPage";
+import { NotesPage } from "./components/NotesPage";
 import { CameraScreen } from "./components/CameraScreen";
 import { GlassConnectedCard } from "./components/GlassConnectedCard";
 import { GlassPage, SmartGlassGuide } from "./components/GlassPage";
@@ -131,7 +132,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true); // Show splash screen first
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
-  const [activePage, setActivePage] = useState('home'); // 'home' | 'gallery' | 'glass' | 'guide'
+  const [activePage, setActivePage] = useState('home'); // 'home' | 'gallery' | 'glass' | 'guide' | 'notes'
   const [showCameraScreen, setShowCameraScreen] = useState(false);
   const [isGlassConnected, setIsGlassConnected] = useState(false);
   const [glassInfo, setGlassInfo] = useState({
@@ -556,7 +557,7 @@ export default function App() {
               <ActionButton icon={PlusIcon} label="New" delay={0} isDark={isDarkMode} />
               <ActionButton icon={MapIcon} label="Maps" delay={1} isDark={isDarkMode} />
               <ActionButton icon={CameraIcon} label="Camera" delay={2} isDark={isDarkMode} onClick={() => setShowCameraScreen(true)} />
-              <ActionButton icon={NotesIcon} label="Notes" delay={3} isDark={isDarkMode} />
+              <ActionButton icon={NotesIcon} label="Notes" delay={3} isDark={isDarkMode} onClick={() => setActivePage('notes')} />
             </div>
           </div>
 
@@ -879,6 +880,17 @@ export default function App() {
                   onClose={() => setActivePage('glass')}
                   isDark={isDarkMode}
                 />
+              </motion.div>
+            ) : activePage === 'notes' ? (
+              <motion.div
+                key="notes-content"
+                className="absolute inset-0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <NotesPage isDark={isDarkMode} />
               </motion.div>
             ) : null}
           </AnimatePresence>
