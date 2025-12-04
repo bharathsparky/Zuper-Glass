@@ -1011,12 +1011,11 @@ export const InspectionDetailsPage = ({
           whileTap={{ scale: 0.95 }}
         >
           {/* Zuper Logo */}
-          <div 
-            className="w-[20px] h-[20px] rounded-[4px] flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)' }}
-          >
-            <span className="text-white font-bold text-[10px]">Z</span>
-          </div>
+          <img 
+            src="/assets/zuper-logo-new.svg" 
+            alt="Zuper" 
+            className="w-[20px] h-[20px] object-contain"
+          />
           <span className="font-['Inter'] font-medium text-[13px] text-white">Open in Zuper App</span>
         </motion.button>
       </div>
