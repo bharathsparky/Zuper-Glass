@@ -145,11 +145,21 @@ export default function App() {
   };
 
   const handleConnectGlass = () => {
+    // Play connected sound
+    const connectedSound = new Audio('/assets/connected.wav');
+    connectedSound.volume = 0.6;
+    connectedSound.play().catch(err => console.log('Audio play failed:', err));
+    
     // Simulate connection
     setIsGlassConnected(true);
   };
 
   const handleDisconnectGlass = () => {
+    // Play disconnected sound
+    const disconnectedSound = new Audio('/assets/disconnected.wav');
+    disconnectedSound.volume = 0.6;
+    disconnectedSound.play().catch(err => console.log('Audio play failed:', err));
+    
     setIsGlassConnected(false);
   };
 
