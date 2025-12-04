@@ -29,7 +29,7 @@ const formatTime = (seconds) => {
 };
 
 // Sample viewfinder image (roof inspection)
-const sampleViewfinderImage = '/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png';
+const sampleViewfinderImage = '/assets/roof.jpg';
 
 export const CameraScreen = ({ 
   isOpen, 
