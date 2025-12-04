@@ -536,6 +536,7 @@ export const InspectionDetailsPage = ({
 }) => {
   const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'notes'
   const [showNoteMenu, setShowNoteMenu] = useState(false);
+  const [showQuickNoteMenu, setShowQuickNoteMenu] = useState(false);
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
   
@@ -702,28 +703,101 @@ export const InspectionDetailsPage = ({
               </span>
             </motion.button>
             
-            {/* Voice Note */}
-            <motion.button
-              className="flex flex-col items-center justify-center gap-[8px] p-[16px] rounded-[16px]"
-              style={{
-                background: isDark 
-                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-              }}
-              whileTap={{ scale: 0.96 }}
-              onClick={onAddNote}
-            >
-              <div 
-                className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+            {/* Notes - with creation menu */}
+            <div className="relative">
+              <motion.button
+                className="flex flex-col items-center justify-center gap-[8px] p-[16px] rounded-[16px] w-full"
+                style={{
+                  background: isDark 
+                    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                    : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setShowQuickNoteMenu(!showQuickNoteMenu)}
               >
-                <Mic className="w-[20px] h-[20px]" style={{ color: '#10b981' }} />
-              </div>
-              <span className="font-['Inter'] font-medium text-[11px]" style={{ color: '#10b981' }}>
-                Notes
-              </span>
-            </motion.button>
+                <div 
+                  className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                >
+                  <Mic className="w-[20px] h-[20px]" style={{ color: '#10b981' }} />
+                </div>
+                <span className="font-['Inter'] font-medium text-[11px]" style={{ color: '#10b981' }}>
+                  Notes
+                </span>
+              </motion.button>
+              
+              {/* Quick Note Creation Menu */}
+              <AnimatePresence>
+                {showQuickNoteMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <motion.div
+                      className="fixed inset-0 z-40"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowQuickNoteMenu(false)}
+                    />
+                    
+                    <motion.div
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-[8px] rounded-[14px] overflow-hidden z-50 w-[180px]"
+                      style={{
+                        background: isDark ? 'rgba(30, 41, 59, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+                      }}
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    >
+                      <motion.button
+                        className="w-full p-[12px] flex items-center gap-[10px]"
+                        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)' }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setShowQuickNoteMenu(false);
+                          onAddNote?.('voice');
+                        }}
+                      >
+                        <div 
+                          className="w-[36px] h-[36px] rounded-full flex items-center justify-center"
+                          style={{ background: `${accentColors.primary}20` }}
+                        >
+                          <Mic className="w-[18px] h-[18px]" style={{ color: accentColors.primary }} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-['Inter'] font-semibold text-[13px]" style={{ color: textColors.primary }}>
+                            Voice Note
+                          </p>
+                        </div>
+                      </motion.button>
+                      
+                      <motion.button
+                        className="w-full p-[12px] flex items-center gap-[10px]"
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          setShowQuickNoteMenu(false);
+                          onAddNote?.('type');
+                        }}
+                      >
+                        <div 
+                          className="w-[36px] h-[36px] rounded-full flex items-center justify-center"
+                          style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
+                        >
+                          <FileText className="w-[18px] h-[18px]" style={{ color: textColors.primary }} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="font-['Inter'] font-semibold text-[13px]" style={{ color: textColors.primary }}>
+                            Type Note
+                          </p>
+                        </div>
+                      </motion.button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
             
             {/* Navigate */}
             <motion.button
