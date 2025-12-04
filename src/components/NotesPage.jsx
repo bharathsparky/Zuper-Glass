@@ -1195,6 +1195,12 @@ export const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob
       reviewed: false,
       included_in_report: false,
     };
+    
+    // Play success sound
+    const successAudio = new Audio('/assets/comp.mp3');
+    successAudio.volume = 0.5;
+    successAudio.play().catch(err => console.log('Audio play prevented:', err));
+    
     onSave(newNote);
     onClose();
   };
@@ -1607,6 +1613,12 @@ export const TypeNoteModal = ({ isOpen, onClose, onSave, isDark, activeJob }) =>
       reviewed: true, // Typed notes are already "reviewed"
       included_in_report: false,
     };
+    
+    // Play success sound
+    const successAudio = new Audio('/assets/comp.mp3');
+    successAudio.volume = 0.5;
+    successAudio.play().catch(err => console.log('Audio play prevented:', err));
+    
     onSave(newNote);
     onClose();
   };

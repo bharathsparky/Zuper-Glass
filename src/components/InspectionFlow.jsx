@@ -152,6 +152,11 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
     setIsCreating(false);
     setStep(3);
     
+    // Play success sound
+    const successAudio = new Audio('/assets/comp.mp3');
+    successAudio.volume = 0.5;
+    successAudio.play().catch(err => console.log('Audio play prevented:', err));
+    
     setTimeout(() => {
       onCreated?.(newInspection);
     }, 1200);
