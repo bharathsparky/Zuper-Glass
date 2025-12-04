@@ -903,23 +903,59 @@ const SyncBanner = ({ isDark }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
     >
-      {/* Photo Thumbnails Grid - 2x3 mini grid */}
-      <div 
-        className="w-[44px] h-[32px] rounded-[6px] overflow-hidden shrink-0 grid grid-cols-3 grid-rows-2 gap-[1px]"
-        style={{ background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)' }}
-      >
-        {[
-          '/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png',
-          '/assets/figma-assets/3dac2f8aff6da25eba445ef419fec39893f1e7ae.png',
-          '/assets/figma-assets/b8df2b89a6feb23a3e5db6f91aded86a2acb99b9.png',
-          '/assets/figma-assets/e88b8d6014b3e9fbd8ce6a6e66fae42f81d89a1e.png',
-          '/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png',
-          '/assets/figma-assets/3dac2f8aff6da25eba445ef419fec39893f1e7ae.png',
-        ].map((src, i) => (
-          <div key={i} className="w-full h-full overflow-hidden">
-            <img src={src} alt="" className="w-full h-full object-cover" />
-          </div>
-        ))}
+      {/* Stacked Photo Thumbnails - Premium flagship style */}
+      <div className="relative w-[40px] h-[32px] shrink-0">
+        {/* Back photo - slightly rotated */}
+        <div 
+          className="absolute w-[26px] h-[26px] rounded-[5px] overflow-hidden shadow-sm"
+          style={{ 
+            left: '0px', 
+            top: '3px',
+            transform: 'rotate(-6deg)',
+            border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.8)',
+          }}
+        >
+          <img 
+            src="/assets/figma-assets/3dac2f8aff6da25eba445ef419fec39893f1e7ae.png" 
+            alt="" 
+            className="w-full h-full object-cover" 
+          />
+        </div>
+        {/* Middle photo */}
+        <div 
+          className="absolute w-[26px] h-[26px] rounded-[5px] overflow-hidden shadow-md"
+          style={{ 
+            left: '6px', 
+            top: '2px',
+            transform: 'rotate(2deg)',
+            border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(255,255,255,0.9)',
+          }}
+        >
+          <img 
+            src="/assets/figma-assets/b8df2b89a6feb23a3e5db6f91aded86a2acb99b9.png" 
+            alt="" 
+            className="w-full h-full object-cover" 
+          />
+        </div>
+        {/* Front photo - main focus */}
+        <div 
+          className="absolute w-[26px] h-[26px] rounded-[5px] overflow-hidden shadow-lg"
+          style={{ 
+            left: '12px', 
+            top: '1px',
+            transform: 'rotate(5deg)',
+            border: isDark ? '1.5px solid rgba(255,255,255,0.2)' : '1.5px solid rgba(255,255,255,1)',
+            boxShadow: isDark 
+              ? '0 2px 8px rgba(0,0,0,0.4)' 
+              : '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <img 
+            src="/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png" 
+            alt="" 
+            className="w-full h-full object-cover" 
+          />
+        </div>
       </div>
       
       {/* Content */}
