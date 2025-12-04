@@ -8,6 +8,7 @@ import { CameraScreen } from "./components/CameraScreen";
 import { GlassConnectedCard } from "./components/GlassConnectedCard";
 import { GlassPage, SmartGlassGuide } from "./components/GlassPage";
 import { LoginScreen } from "./components/LoginScreen";
+import SplashScreen from "./components/SplashScreen";
 
 // Image assets - exact paths from Figma
 const imgAvatar = "/assets/avatar-bharath.jpg";
@@ -127,6 +128,7 @@ const ActionButton = ({ icon: IconComponent, label, delay = 0, isDark = false, o
 };
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true); // Show splash screen first
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
   const [activePage, setActivePage] = useState('home'); // 'home' | 'gallery' | 'glass' | 'guide'
@@ -137,6 +139,10 @@ export default function App() {
     deviceId: "W610_CDDB",
     batteryLevel: 80,
   });
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
 
   const handleConnectGlass = () => {
     // Simulate connection
@@ -227,9 +233,16 @@ export default function App() {
           border: theme.phoneBorder
         }}
       >
-        {/* Login Screen - Shows before main app (always dark mode) */}
+        {/* Splash Screen - Shows first on app launch */}
         <AnimatePresence>
-          {!isLoggedIn && (
+          {showSplash && (
+            <SplashScreen onComplete={handleSplashComplete} />
+          )}
+        </AnimatePresence>
+
+        {/* Login Screen - Shows after splash, before main app (always dark mode) */}
+        <AnimatePresence>
+          {!showSplash && !isLoggedIn && (
             <LoginScreen onComplete={() => setIsLoggedIn(true)} isDark={true} />
           )}
         </AnimatePresence>
