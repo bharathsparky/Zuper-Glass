@@ -1038,30 +1038,23 @@ export const GlassPage = ({ isDark = false, isConnected = true, glassInfo = {}, 
             whileTap={{ scale: 0.99 }}
             onClick={onOpenGuide}
           >
-            {/* Illustration */}
+            {/* Tutorial Image from Figma */}
             <div 
-              className="w-[70px] h-[70px] rounded-[12px] flex items-center justify-center shrink-0 overflow-hidden"
+              className="w-[80px] h-[70px] rounded-[10px] shrink-0 overflow-hidden"
               style={{
-                background: isDark 
-                  ? `linear-gradient(135deg, rgba(133, 88, 242, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%)`
-                  : `linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(14, 165, 233, 0.08) 100%)`,
                 border: isDark 
-                  ? '1px solid rgba(133, 88, 242, 0.2)'
-                  : '1px solid rgba(2, 132, 199, 0.15)',
+                  ? '1.5px solid rgba(255, 255, 255, 0.15)'
+                  : '1.5px solid rgba(0, 0, 0, 0.1)',
+                boxShadow: isDark 
+                  ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+                  : '0 4px 12px rgba(0, 0, 0, 0.08)',
               }}
             >
-              {/* Simple glasses illustration */}
-              <svg width="50" height="32" viewBox="0 0 50 32" fill="none">
-                <path 
-                  d="M45 10C45 10 43 9 41 9H35C32 9 30 11 25 11C20 11 18 9 15 9H9C7 9 5 10 5 10C4 10.5 3 12 3 13C3 18 4 22 7 24C10 26 16 26 19 23C21 21 22 17 23 15C23 14.5 24 14 25 14C26 14 27 14.5 27 15C28 17 29 21 31 23C34 26 40 26 43 24C46 22 47 18 47 13C47 12 46 10.5 45 10Z" 
-                  stroke={isDark ? '#a78bfa' : '#0284c7'} 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  fill="none"
-                />
-                <circle cx="12" cy="16" r="5" stroke={isDark ? '#a78bfa' : '#0284c7'} strokeWidth="1.5" fill="none" />
-                <circle cx="38" cy="16" r="5" stroke={isDark ? '#a78bfa' : '#0284c7'} strokeWidth="1.5" fill="none" />
-              </svg>
+              <img 
+                src="/assets/figma-assets/73f3126f9d060ff4d7ad540442f60595d5c9920c.png" 
+                alt="Smart Glass Guide" 
+                className="w-full h-full object-cover"
+              />
             </div>
 
             {/* Content */}
