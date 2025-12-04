@@ -6,6 +6,7 @@ import { WeatherGreeting } from "./components/WeatherGreeting";
 import { GalleryPage } from "./components/GalleryPage";
 import { NotesPage } from "./components/NotesPage";
 import { CameraScreen } from "./components/CameraScreen";
+import { CreateInspectionModal, InspectionDetailsPage } from "./components/InspectionFlow";
 import { GlassConnectedCard } from "./components/GlassConnectedCard";
 import { GlassPage, SmartGlassGuide } from "./components/GlassPage";
 import { LoginScreen } from "./components/LoginScreen";
@@ -132,8 +133,10 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true); // Show splash screen first
   const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
-  const [activePage, setActivePage] = useState('home'); // 'home' | 'gallery' | 'glass' | 'guide' | 'notes'
+  const [activePage, setActivePage] = useState('home'); // 'home' | 'gallery' | 'glass' | 'guide' | 'notes' | 'inspection'
   const [showCameraScreen, setShowCameraScreen] = useState(false);
+  const [showCreateInspection, setShowCreateInspection] = useState(false);
+  const [currentInspection, setCurrentInspection] = useState(null);
   const [isGlassConnected, setIsGlassConnected] = useState(false);
   const [glassInfo, setGlassInfo] = useState({
     deviceName: "Sparky's Smart Glass",
@@ -554,7 +557,7 @@ export default function App() {
 
             {/* Quick Actions - Glass-themed */}
             <div className="flex gap-[20px] items-start justify-center w-full shrink-0 px-[8px]">
-              <ActionButton icon={PlusIcon} label="New" delay={0} isDark={isDarkMode} />
+              <ActionButton icon={PlusIcon} label="New" delay={0} isDark={isDarkMode} onClick={() => setShowCreateInspection(true)} />
               <ActionButton icon={MapIcon} label="Maps" delay={1} isDark={isDarkMode} />
               <ActionButton icon={CameraIcon} label="Camera" delay={2} isDark={isDarkMode} onClick={() => setShowCameraScreen(true)} />
               <ActionButton icon={NotesIcon} label="Notes" delay={3} isDark={isDarkMode} onClick={() => setActivePage('notes')} />
@@ -892,6 +895,26 @@ export default function App() {
               >
                 <NotesPage isDark={isDarkMode} />
               </motion.div>
+            ) : activePage === 'inspection' && currentInspection ? (
+              <motion.div
+                key="inspection-content"
+                className="absolute inset-0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <InspectionDetailsPage 
+                  inspection={currentInspection}
+                  isDark={isDarkMode}
+                  onBack={() => {
+                    setActivePage('home');
+                    setCurrentInspection(null);
+                  }}
+                  onTakePhoto={() => setShowCameraScreen(true)}
+                  onAddNote={() => setActivePage('notes')}
+                />
+              </motion.div>
             ) : null}
           </AnimatePresence>
         </div>
@@ -1180,9 +1203,25 @@ export default function App() {
         <CameraScreen 
           isOpen={showCameraScreen}
           onClose={() => setShowCameraScreen(false)}
-          inspectionTitle="Roof inspection for Henry"
+          inspectionTitle={currentInspection?.name || "Roof inspection"}
           onCapture={handleCameraCapture}
         />
+        
+        {/* Create Inspection Modal */}
+        <AnimatePresence>
+          {showCreateInspection && (
+            <CreateInspectionModal
+              isOpen={showCreateInspection}
+              onClose={() => setShowCreateInspection(false)}
+              onCreated={(newInspection) => {
+                setShowCreateInspection(false);
+                setCurrentInspection(newInspection);
+                setActivePage('inspection');
+              }}
+              isDark={isDarkMode}
+            />
+          )}
+        </AnimatePresence>
           </>
         )}
       </motion.div>
