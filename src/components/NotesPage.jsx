@@ -798,6 +798,36 @@ const NoteCard = ({ note, isDark, isSelected, onSelect, onToggleSelect, onEdit, 
             </div>
           )}
           
+            {/* Source indicator */}
+          {note.metadata?.source && (
+            <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+              style={{ 
+                background: note.metadata.source === 'app_typed' 
+                  ? isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.08)'
+                  : note.metadata.source === 'app_voice'
+                    ? isDark ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.08)'
+                    : isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)'
+              }}
+            >
+              {note.metadata.source === 'app_typed' ? (
+                <>
+                  <FileText className="w-[10px] h-[10px] text-blue-500" />
+                  <span className="font-['Inter'] text-[10px] text-blue-500">Typed</span>
+                </>
+              ) : note.metadata.source === 'app_voice' ? (
+                <>
+                  <Mic className="w-[10px] h-[10px] text-purple-500" />
+                  <span className="font-['Inter'] text-[10px] text-purple-500">App Voice</span>
+                </>
+              ) : (
+                <>
+                  <Radio className="w-[10px] h-[10px] text-emerald-500" />
+                  <span className="font-['Inter'] text-[10px] text-emerald-500">Glass</span>
+                </>
+              )}
+            </div>
+          )}
+          
           {/* Photos */}
           {note.attachments.photos.length > 0 && (
             <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
@@ -1066,6 +1096,962 @@ const VoiceCommandsSheet = ({ isOpen, onClose, isDark }) => {
   );
 };
 
+// Note Creation Modal - Voice Recording Mode (App)
+const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [transcription, setTranscription] = useState('');
+  const [showLiveTranscription, setShowLiveTranscription] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('quick');
+  const [selectedSeverity, setSelectedSeverity] = useState('low');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const textColors = getTextColors(isDark);
+  const accentColors = getAccentColors(isDark);
+  
+  // Recording timer
+  useEffect(() => {
+    let interval;
+    if (isRecording && !isPaused) {
+      interval = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording, isPaused]);
+  
+  // Simulate live transcription
+  useEffect(() => {
+    if (isRecording && !isPaused && showLiveTranscription) {
+      const phrases = [
+        "Found ",
+        "Found damage ",
+        "Found damage on ",
+        "Found damage on the ",
+        "Found damage on the north ",
+        "Found damage on the north slope... ",
+      ];
+      const interval = setInterval(() => {
+        const index = Math.min(Math.floor(recordingDuration / 2), phrases.length - 1);
+        setTranscription(phrases[index]);
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [isRecording, isPaused, recordingDuration, showLiveTranscription]);
+  
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  const handleStartRecording = () => {
+    setIsRecording(true);
+    setIsPaused(false);
+    setRecordingDuration(0);
+    setTranscription('');
+  };
+  
+  const handlePauseResume = () => {
+    setIsPaused(!isPaused);
+  };
+  
+  const handleStopRecording = () => {
+    setIsRecording(false);
+    setIsProcessing(true);
+    // Simulate processing
+    setTimeout(() => {
+      setTranscription("Found significant shingle damage on the north-facing slope near the ridge cap. Three to four shingles show signs of wind uplift and need replacement. The flashing around the chimney also appears compromised.");
+      setIsProcessing(false);
+    }, 1500);
+  };
+  
+  const handleSave = () => {
+    const newNote = {
+      id: `note-${Date.now()}`,
+      job_id: activeJob?.id || 'job-1247',
+      inspection_id: 'insp-5821',
+      created_timestamp: new Date().toISOString(),
+      recording_duration: recordingDuration,
+      audio_file_path: '/audio/app-recording.webm',
+      transcription_text: transcription,
+      transcription_confidence: 94,
+      edited_text: null,
+      metadata: {
+        gps_coordinates: { lat: 34.0522, lng: -118.2437 },
+        weather: { temp: 72, condition: 'sunny', humidity: 45 },
+        device_battery: 95,
+        source: 'app_voice', // Distinguishes from glass recording
+      },
+      categorization: {
+        type: selectedCategory,
+        severity: selectedSeverity,
+        roof_section: 'Auto-detected',
+        tags: [],
+      },
+      attachments: { photos: [], videos: [] },
+      sync_status: 'synced',
+      reviewed: false,
+      included_in_report: false,
+    };
+    onSave(newNote);
+    onClose();
+  };
+  
+  const handleDiscard = () => {
+    setIsRecording(false);
+    setRecordingDuration(0);
+    setTranscription('');
+    onClose();
+  };
+  
+  if (!isOpen) return null;
+  
+  const template = noteTemplates.find(t => t.id === selectedCategory);
+  
+  return (
+    <motion.div
+      className="absolute inset-0 z-[100] flex flex-col"
+      style={{
+        background: isDark 
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+      }}
+      initial={{ opacity: 0, y: '100%' }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: '100%' }}
+      transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+    >
+      {/* Header */}
+      <div 
+        className="shrink-0 px-[20px] pt-[16px] pb-[12px] flex items-center justify-between"
+        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)' }}
+      >
+        <motion.button
+          className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center"
+          style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleDiscard}
+        >
+          <X className="w-[20px] h-[20px]" style={{ color: textColors.primary }} strokeWidth={2} />
+        </motion.button>
+        
+        <div className="flex items-center gap-[8px]">
+          <Mic className="w-[18px] h-[18px]" style={{ color: accentColors.primary }} />
+          <h1 className="font-['Space_Grotesk'] font-bold text-[18px]" style={{ color: textColors.primary }}>
+            Voice Note
+          </h1>
+        </div>
+        
+        <motion.button
+          className="px-[16px] py-[10px] rounded-[10px] flex items-center gap-[6px]"
+          style={{
+            background: transcription ? accentColors.primary : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            opacity: transcription ? 1 : 0.5,
+          }}
+          whileTap={{ scale: 0.95 }}
+          disabled={!transcription}
+          onClick={handleSave}
+        >
+          <Check className="w-[16px] h-[16px]" style={{ color: transcription ? 'white' : textColors.muted }} strokeWidth={2.5} />
+          <span className="font-['Inter'] font-semibold text-[13px]" style={{ color: transcription ? 'white' : textColors.muted }}>
+            Save
+          </span>
+        </motion.button>
+      </div>
+      
+      {/* Active Job Indicator */}
+      {activeJob && (
+        <div 
+          className="mx-[20px] mt-[12px] px-[12px] py-[8px] rounded-[8px] flex items-center gap-[8px]"
+          style={{ background: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }}
+        >
+          <Link className="w-[12px] h-[12px] text-emerald-500" />
+          <span className="font-['Inter'] text-[11px] text-emerald-600">
+            Linked to: {activeJob.name || 'Roof Inspection #1247'}
+          </span>
+        </div>
+      )}
+      
+      {/* Main Recording Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-[24px]">
+        {!isRecording && !transcription ? (
+          /* Ready to Record State */
+          <div className="flex flex-col items-center">
+            <motion.button
+              className="w-[100px] h-[100px] rounded-full flex items-center justify-center mb-[20px]"
+              style={{
+                background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
+                boxShadow: `0 12px 40px ${isDark ? 'rgba(133, 88, 242, 0.4)' : 'rgba(2, 132, 199, 0.35)'}`,
+              }}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={handleStartRecording}
+            >
+              <Mic className="w-[40px] h-[40px] text-white" strokeWidth={1.5} />
+            </motion.button>
+            
+            <p className="font-['Inter'] font-semibold text-[16px] mb-[6px]" style={{ color: textColors.primary }}>
+              Tap to Start Recording
+            </p>
+            <p className="font-['Inter'] text-[13px] text-center max-w-[240px]" style={{ color: textColors.muted }}>
+              Use your phone's microphone to capture a voice note
+            </p>
+            
+            {/* Hold to talk option */}
+            <div 
+              className="mt-[24px] px-[16px] py-[10px] rounded-[10px]"
+              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
+            >
+              <p className="font-['Inter'] text-[11px] text-center" style={{ color: textColors.muted }}>
+                💡 Tip: Hold the button for walkie-talkie style recording
+              </p>
+            </div>
+          </div>
+        ) : isRecording ? (
+          /* Recording State */
+          <div className="flex flex-col items-center w-full">
+            {/* Recording indicator */}
+            <motion.div 
+              className="flex items-center gap-[10px] mb-[16px]"
+              animate={{ opacity: isPaused ? 0.5 : [1, 0.5, 1] }}
+              transition={{ duration: 1, repeat: isPaused ? 0 : Infinity }}
+            >
+              <div className={`w-[14px] h-[14px] rounded-full ${isPaused ? 'bg-amber-500' : 'bg-red-500'}`} />
+              <span className={`font-['SF_Mono',monospace] text-[16px] font-bold ${isPaused ? 'text-amber-500' : 'text-red-500'}`}>
+                {isPaused ? 'PAUSED' : 'RECORDING'}
+              </span>
+            </motion.div>
+            
+            {/* Timer */}
+            <span className="font-['SF_Mono',monospace] text-[48px] font-bold mb-[16px]" style={{ color: textColors.primary }}>
+              {formatTime(recordingDuration)}
+            </span>
+            
+            {/* Waveform Visualization */}
+            <div className="flex items-center gap-[3px] h-[60px] mb-[24px]">
+              {[...Array(24)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="w-[4px] rounded-full"
+                  style={{ background: isPaused ? textColors.muted : accentColors.primary }}
+                  animate={isPaused ? { height: 8 } : { 
+                    height: [8, 20 + Math.random() * 40, 8],
+                  }}
+                  transition={{ 
+                    duration: 0.2 + Math.random() * 0.3,
+                    repeat: isPaused ? 0 : Infinity,
+                    delay: i * 0.02,
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Live Transcription Toggle */}
+            <motion.button
+              className="flex items-center gap-[8px] px-[14px] py-[8px] rounded-[8px] mb-[20px]"
+              style={{
+                background: showLiveTranscription 
+                  ? isDark ? 'rgba(133, 88, 242, 0.15)' : 'rgba(2, 132, 199, 0.1)'
+                  : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                border: showLiveTranscription ? `1px solid ${accentColors.primary}30` : 'none',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowLiveTranscription(!showLiveTranscription)}
+            >
+              {showLiveTranscription ? (
+                <Eye className="w-[14px] h-[14px]" style={{ color: accentColors.primary }} />
+              ) : (
+                <EyeOff className="w-[14px] h-[14px]" style={{ color: textColors.muted }} />
+              )}
+              <span className="font-['Inter'] text-[12px]" style={{ color: showLiveTranscription ? accentColors.primary : textColors.muted }}>
+                Live Transcription
+              </span>
+            </motion.button>
+            
+            {/* Live Transcription Preview */}
+            {showLiveTranscription && transcription && (
+              <motion.div
+                className="w-full p-[14px] rounded-[12px] mb-[24px]"
+                style={{
+                  background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+                }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <p className="font-['Inter'] text-[13px] italic" style={{ color: textColors.description }}>
+                  {transcription}
+                  <motion.span
+                    animate={{ opacity: [1, 0, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                  >|</motion.span>
+                </p>
+              </motion.div>
+            )}
+            
+            {/* Control Buttons */}
+            <div className="flex items-center gap-[16px]">
+              <motion.button
+                className="w-[56px] h-[56px] rounded-full flex items-center justify-center"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handlePauseResume}
+              >
+                {isPaused ? (
+                  <Play className="w-[24px] h-[24px]" style={{ color: textColors.primary }} fill={textColors.primary} />
+                ) : (
+                  <Pause className="w-[24px] h-[24px]" style={{ color: textColors.primary }} fill={textColors.primary} />
+                )}
+              </motion.button>
+              
+              <motion.button
+                className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleStopRecording}
+              >
+                <Square className="w-[28px] h-[28px] text-white" fill="white" />
+              </motion.button>
+              
+              <motion.button
+                className="w-[56px] h-[56px] rounded-full flex items-center justify-center"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleDiscard}
+              >
+                <Trash2 className="w-[22px] h-[22px] text-red-500" />
+              </motion.button>
+            </div>
+          </div>
+        ) : isProcessing ? (
+          /* Processing State */
+          <div className="flex flex-col items-center">
+            <motion.div
+              className="w-[60px] h-[60px] rounded-full border-4 border-t-transparent mb-[20px]"
+              style={{ borderColor: `${accentColors.primary}40`, borderTopColor: 'transparent' }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
+            <p className="font-['Inter'] font-semibold text-[16px]" style={{ color: textColors.primary }}>
+              Processing Audio...
+            </p>
+            <p className="font-['Inter'] text-[13px] mt-[6px]" style={{ color: textColors.muted }}>
+              Converting speech to text
+            </p>
+          </div>
+        ) : (
+          /* Review State */
+          <div className="w-full">
+            <div className="flex items-center gap-[8px] mb-[12px]">
+              <CheckCircle className="w-[18px] h-[18px] text-emerald-500" />
+              <span className="font-['Inter'] font-semibold text-[14px] text-emerald-600">
+                Recording Complete
+              </span>
+              <span className="font-['Inter'] text-[12px]" style={{ color: textColors.muted }}>
+                ({formatTime(recordingDuration)})
+              </span>
+            </div>
+            
+            {/* Transcription */}
+            <div 
+              className="w-full p-[16px] rounded-[14px] mb-[16px]"
+              style={{
+                background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              }}
+            >
+              <textarea
+                className="w-full min-h-[120px] bg-transparent font-['Inter'] text-[14px] leading-[1.6] outline-none resize-none"
+                style={{ color: textColors.primary }}
+                value={transcription}
+                onChange={(e) => setTranscription(e.target.value)}
+                placeholder="Edit transcription..."
+              />
+            </div>
+            
+            {/* Audio Playback */}
+            <AudioPlayer audioPath="" duration={recordingDuration} isDark={isDark} />
+            
+            {/* Category & Severity Selection */}
+            <div className="flex gap-[10px] mt-[16px]">
+              <div className="flex-1">
+                <p className="font-['Inter'] text-[10px] uppercase tracking-wide mb-[6px]" style={{ color: textColors.muted }}>
+                  Category
+                </p>
+                <div className="flex gap-[6px] flex-wrap">
+                  {noteTemplates.slice(0, 3).map((t) => (
+                    <motion.button
+                      key={t.id}
+                      className="px-[10px] py-[6px] rounded-[8px] flex items-center gap-[4px]"
+                      style={{
+                        background: selectedCategory === t.id ? `${t.color}20` : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        border: selectedCategory === t.id ? `1px solid ${t.color}40` : 'none',
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSelectedCategory(t.id)}
+                    >
+                      <t.icon className="w-[12px] h-[12px]" style={{ color: t.color }} />
+                      <span className="font-['Inter'] text-[11px]" style={{ color: selectedCategory === t.id ? t.color : textColors.description }}>
+                        {t.name}
+                      </span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="flex gap-[10px] mt-[16px]">
+              <motion.button
+                className="flex-1 py-[12px] rounded-[10px] flex items-center justify-center gap-[8px]"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Camera className="w-[16px] h-[16px]" style={{ color: textColors.description }} />
+                <span className="font-['Inter'] font-medium text-[12px]" style={{ color: textColors.primary }}>
+                  Add Photo
+                </span>
+              </motion.button>
+              
+              <motion.button
+                className="flex-1 py-[12px] rounded-[10px] flex items-center justify-center gap-[8px]"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setTranscription('');
+                  setRecordingDuration(0);
+                  setIsRecording(false);
+                }}
+              >
+                <RotateCcw className="w-[16px] h-[16px]" style={{ color: textColors.description }} />
+                <span className="font-['Inter'] font-medium text-[12px]" style={{ color: textColors.primary }}>
+                  Re-record
+                </span>
+              </motion.button>
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Note Creation Modal - Type Mode (App)
+const TypeNoteModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
+  const [noteText, setNoteText] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('quick');
+  const [selectedSeverity, setSelectedSeverity] = useState('low');
+  const [roofSection, setRoofSection] = useState('');
+  const [tags, setTags] = useState('');
+  const [showFormatting, setShowFormatting] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [isVoiceTyping, setIsVoiceTyping] = useState(false);
+  
+  const textColors = getTextColors(isDark);
+  const accentColors = getAccentColors(isDark);
+  
+  // Auto-save draft every 10 seconds
+  useEffect(() => {
+    if (noteText.length > 0) {
+      const interval = setInterval(() => {
+        setLastSaved(new Date());
+        // In real app, save to local storage here
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [noteText]);
+  
+  const handleSave = () => {
+    if (!noteText.trim()) return;
+    
+    const newNote = {
+      id: `note-${Date.now()}`,
+      job_id: activeJob?.id || 'job-1247',
+      inspection_id: 'insp-5821',
+      created_timestamp: new Date().toISOString(),
+      recording_duration: 0,
+      audio_file_path: null, // No audio for typed notes
+      transcription_text: noteText,
+      transcription_confidence: 100, // Typed = 100% accuracy
+      edited_text: null,
+      metadata: {
+        gps_coordinates: { lat: 34.0522, lng: -118.2437 },
+        weather: { temp: 72, condition: 'sunny', humidity: 45 },
+        device_battery: 95,
+        source: 'app_typed', // Distinguishes from voice
+      },
+      categorization: {
+        type: selectedCategory,
+        severity: selectedSeverity,
+        roof_section: roofSection || 'Not specified',
+        tags: tags.split(',').map(t => t.trim()).filter(t => t),
+      },
+      attachments: { photos: [], videos: [] },
+      sync_status: 'synced',
+      reviewed: true, // Typed notes are already "reviewed"
+      included_in_report: false,
+    };
+    onSave(newNote);
+    onClose();
+  };
+  
+  const handleSaveAndNew = () => {
+    handleSave();
+    setNoteText('');
+    setRoofSection('');
+    setTags('');
+  };
+  
+  const insertFormatting = (format) => {
+    switch(format) {
+      case 'bullet':
+        setNoteText(prev => prev + '\n• ');
+        break;
+      case 'number':
+        setNoteText(prev => prev + '\n1. ');
+        break;
+      default:
+        break;
+    }
+  };
+  
+  if (!isOpen) return null;
+  
+  const template = noteTemplates.find(t => t.id === selectedCategory);
+  
+  return (
+    <motion.div
+      className="absolute inset-0 z-[100] flex flex-col"
+      style={{
+        background: isDark 
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
+      }}
+      initial={{ opacity: 0, y: '100%' }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: '100%' }}
+      transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+    >
+      {/* Header */}
+      <div 
+        className="shrink-0 px-[20px] pt-[16px] pb-[12px] flex items-center justify-between"
+        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)' }}
+      >
+        <motion.button
+          className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center"
+          style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onClose}
+        >
+          <X className="w-[20px] h-[20px]" style={{ color: textColors.primary }} strokeWidth={2} />
+        </motion.button>
+        
+        <div className="flex items-center gap-[8px]">
+          <FileText className="w-[18px] h-[18px]" style={{ color: accentColors.primary }} />
+          <h1 className="font-['Space_Grotesk'] font-bold text-[18px]" style={{ color: textColors.primary }}>
+            Type Note
+          </h1>
+        </div>
+        
+        <motion.button
+          className="px-[16px] py-[10px] rounded-[10px] flex items-center gap-[6px]"
+          style={{
+            background: noteText.trim() ? accentColors.primary : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            opacity: noteText.trim() ? 1 : 0.5,
+          }}
+          whileTap={{ scale: 0.95 }}
+          disabled={!noteText.trim()}
+          onClick={handleSave}
+        >
+          <Check className="w-[16px] h-[16px]" style={{ color: noteText.trim() ? 'white' : textColors.muted }} strokeWidth={2.5} />
+          <span className="font-['Inter'] font-semibold text-[13px]" style={{ color: noteText.trim() ? 'white' : textColors.muted }}>
+            Save
+          </span>
+        </motion.button>
+      </div>
+      
+      {/* Active Job Indicator */}
+      {activeJob && (
+        <div 
+          className="mx-[20px] mt-[12px] px-[12px] py-[8px] rounded-[8px] flex items-center gap-[8px]"
+          style={{ background: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }}
+        >
+          <Link className="w-[12px] h-[12px] text-emerald-500" />
+          <span className="font-['Inter'] text-[11px] text-emerald-600">
+            Linked to: {activeJob.name || 'Roof Inspection #1247'}
+          </span>
+        </div>
+      )}
+      
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-[20px] py-[16px]">
+        {/* Text Editor */}
+        <div 
+          className="rounded-[14px] overflow-hidden mb-[16px]"
+          style={{
+            background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
+            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+          }}
+        >
+          {/* Formatting Toolbar */}
+          <div 
+            className="flex items-center justify-between px-[12px] py-[8px]"
+            style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)' }}
+          >
+            <div className="flex items-center gap-[4px]">
+              <motion.button
+                className="w-[32px] h-[32px] rounded-[6px] flex items-center justify-center"
+                style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => insertFormatting('bullet')}
+              >
+                <span className="font-['Inter'] font-bold text-[14px]" style={{ color: textColors.description }}>•</span>
+              </motion.button>
+              <motion.button
+                className="w-[32px] h-[32px] rounded-[6px] flex items-center justify-center"
+                style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => insertFormatting('number')}
+              >
+                <span className="font-['Inter'] font-bold text-[12px]" style={{ color: textColors.description }}>1.</span>
+              </motion.button>
+            </div>
+            
+            {/* Voice-to-text toggle */}
+            <motion.button
+              className="flex items-center gap-[6px] px-[10px] py-[6px] rounded-[8px]"
+              style={{
+                background: isVoiceTyping 
+                  ? 'rgba(239, 68, 68, 0.15)' 
+                  : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                border: isVoiceTyping ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsVoiceTyping(!isVoiceTyping)}
+            >
+              <Mic className="w-[14px] h-[14px]" style={{ color: isVoiceTyping ? '#ef4444' : textColors.muted }} />
+              <span className="font-['Inter'] text-[11px]" style={{ color: isVoiceTyping ? '#ef4444' : textColors.muted }}>
+                {isVoiceTyping ? 'Listening...' : 'Dictate'}
+              </span>
+            </motion.button>
+          </div>
+          
+          {/* Text Area */}
+          <textarea
+            className="w-full min-h-[200px] p-[14px] bg-transparent font-['Inter'] text-[14px] leading-[1.6] outline-none resize-none"
+            style={{ color: textColors.primary }}
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Type your note here...
+
+Example:
+• Measured roof area: 2,400 sq ft
+• Shingle type: 3-tab asphalt
+• Estimated replacement cost: $8,500"
+          />
+          
+          {/* Footer */}
+          <div 
+            className="flex items-center justify-between px-[12px] py-[8px]"
+            style={{ borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)' }}
+          >
+            <span className="font-['Inter'] text-[10px]" style={{ color: textColors.muted }}>
+              {noteText.length}/10,000 characters
+            </span>
+            {lastSaved && (
+              <span className="font-['Inter'] text-[10px]" style={{ color: textColors.muted }}>
+                Draft saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Metadata Panel */}
+        <div 
+          className="rounded-[14px] p-[14px] mb-[16px]"
+          style={{
+            background: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.02)',
+            border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+          }}
+        >
+          <p className="font-['Inter'] font-semibold text-[12px] mb-[12px]" style={{ color: textColors.primary }}>
+            Note Details
+          </p>
+          
+          {/* Category Selection */}
+          <div className="mb-[12px]">
+            <p className="font-['Inter'] text-[10px] uppercase tracking-wide mb-[6px]" style={{ color: textColors.muted }}>
+              Category
+            </p>
+            <div className="flex gap-[6px] flex-wrap">
+              {noteTemplates.map((t) => (
+                <motion.button
+                  key={t.id}
+                  className="px-[10px] py-[6px] rounded-[8px] flex items-center gap-[4px]"
+                  style={{
+                    background: selectedCategory === t.id ? `${t.color}20` : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    border: selectedCategory === t.id ? `1px solid ${t.color}40` : 'none',
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedCategory(t.id)}
+                >
+                  <t.icon className="w-[12px] h-[12px]" style={{ color: t.color }} />
+                  <span className="font-['Inter'] text-[11px]" style={{ color: selectedCategory === t.id ? t.color : textColors.description }}>
+                    {t.name}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Severity Selection */}
+          <div className="mb-[12px]">
+            <p className="font-['Inter'] text-[10px] uppercase tracking-wide mb-[6px]" style={{ color: textColors.muted }}>
+              Severity
+            </p>
+            <div className="flex gap-[6px]">
+              {[
+                { id: 'low', label: 'Low', color: '#10b981' },
+                { id: 'medium', label: 'Medium', color: '#f59e0b' },
+                { id: 'high', label: 'High', color: '#ef4444' },
+              ].map((s) => (
+                <motion.button
+                  key={s.id}
+                  className="px-[12px] py-[6px] rounded-[8px]"
+                  style={{
+                    background: selectedSeverity === s.id ? `${s.color}20` : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    border: selectedSeverity === s.id ? `1px solid ${s.color}40` : 'none',
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedSeverity(s.id)}
+                >
+                  <span className="font-['Inter'] text-[11px]" style={{ color: selectedSeverity === s.id ? s.color : textColors.description }}>
+                    {s.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Roof Section */}
+          <div className="mb-[12px]">
+            <p className="font-['Inter'] text-[10px] uppercase tracking-wide mb-[6px]" style={{ color: textColors.muted }}>
+              Roof Section
+            </p>
+            <input
+              type="text"
+              className="w-full px-[12px] py-[10px] rounded-[8px] font-['Inter'] text-[13px] outline-none"
+              style={{
+                background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                color: textColors.primary,
+                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              }}
+              placeholder="e.g., North slope, Ridge area"
+              value={roofSection}
+              onChange={(e) => setRoofSection(e.target.value)}
+            />
+          </div>
+          
+          {/* Tags */}
+          <div>
+            <p className="font-['Inter'] text-[10px] uppercase tracking-wide mb-[6px]" style={{ color: textColors.muted }}>
+              Tags (comma separated)
+            </p>
+            <input
+              type="text"
+              className="w-full px-[12px] py-[10px] rounded-[8px] font-['Inter'] text-[13px] outline-none"
+              style={{
+                background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                color: textColors.primary,
+                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+              }}
+              placeholder="e.g., shingles, flashing, damage"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        {/* Photo Attachment */}
+        <motion.button
+          className="w-full py-[14px] rounded-[12px] flex items-center justify-center gap-[8px] mb-[16px]"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            border: `2px dashed ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`,
+          }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Camera className="w-[18px] h-[18px]" style={{ color: textColors.muted }} />
+          <span className="font-['Inter'] font-medium text-[13px]" style={{ color: textColors.description }}>
+            Add Photo or Video
+          </span>
+        </motion.button>
+        
+        {/* Quick Actions */}
+        <div className="flex gap-[10px]">
+          <motion.button
+            className="flex-1 py-[14px] rounded-[12px] flex items-center justify-center gap-[8px]"
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSaveAndNew}
+            disabled={!noteText.trim()}
+          >
+            <Plus className="w-[16px] h-[16px]" style={{ color: textColors.description }} />
+            <span className="font-['Inter'] font-medium text-[13px]" style={{ color: textColors.primary }}>
+              Save & New
+            </span>
+          </motion.button>
+          
+          <motion.button
+            className="flex-1 py-[14px] rounded-[12px] flex items-center justify-center gap-[8px]"
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Download className="w-[16px] h-[16px]" style={{ color: textColors.description }} />
+            <span className="font-['Inter'] font-medium text-[13px]" style={{ color: textColors.primary }}>
+              Save Draft
+            </span>
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// FAB Menu for Note Creation
+const NoteCreationFAB = ({ isDark, onVoiceNote, onTypeNote, isGlassConnected }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const textColors = getTextColors(isDark);
+  const accentColors = getAccentColors(isDark);
+  
+  return (
+    <div className="absolute bottom-[100px] right-[24px] z-40">
+      {/* Menu Options */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Voice Note Option */}
+            <motion.button
+              className="absolute bottom-[140px] right-0 flex items-center gap-[10px]"
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{ delay: 0.05 }}
+              onClick={() => {
+                setIsOpen(false);
+                onVoiceNote();
+              }}
+            >
+              <span 
+                className="px-[12px] py-[8px] rounded-[8px] font-['Inter'] font-medium text-[12px] whitespace-nowrap"
+                style={{
+                  background: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                  color: textColors.primary,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                }}
+              >
+                Voice Note
+              </span>
+              <div 
+                className="w-[52px] h-[52px] rounded-full flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
+                  boxShadow: `0 6px 20px ${isDark ? 'rgba(133, 88, 242, 0.35)' : 'rgba(2, 132, 199, 0.3)'}`,
+                }}
+              >
+                <Mic className="w-[22px] h-[22px] text-white" />
+              </div>
+            </motion.button>
+            
+            {/* Type Note Option */}
+            <motion.button
+              className="absolute bottom-[70px] right-0 flex items-center gap-[10px]"
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.8 }}
+              transition={{ delay: 0.1 }}
+              onClick={() => {
+                setIsOpen(false);
+                onTypeNote();
+              }}
+            >
+              <span 
+                className="px-[12px] py-[8px] rounded-[8px] font-['Inter'] font-medium text-[12px] whitespace-nowrap"
+                style={{
+                  background: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                  color: textColors.primary,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                }}
+              >
+                Type Note
+              </span>
+              <div 
+                className="w-[52px] h-[52px] rounded-full flex items-center justify-center"
+                style={{
+                  background: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                  border: isDark ? '2px solid rgba(255,255,255,0.15)' : '2px solid rgba(0,0,0,0.1)',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                }}
+              >
+                <FileText className="w-[22px] h-[22px]" style={{ color: accentColors.primary }} />
+              </div>
+            </motion.button>
+          </>
+        )}
+      </AnimatePresence>
+      
+      {/* Main FAB */}
+      <motion.button
+        className="w-[60px] h-[60px] rounded-full flex items-center justify-center"
+        style={{
+          background: isOpen 
+            ? isDark ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.9)'
+            : `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
+          boxShadow: `0 8px 24px ${isOpen ? 'rgba(239, 68, 68, 0.35)' : isDark ? 'rgba(133, 88, 242, 0.4)' : 'rgba(2, 132, 199, 0.35)'}`,
+        }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)}
+        animate={{ rotate: isOpen ? 45 : 0 }}
+      >
+        {isOpen ? (
+          <X className="w-[26px] h-[26px] text-white" strokeWidth={2.5} />
+        ) : (
+          <Plus className="w-[26px] h-[26px] text-white" strokeWidth={2.5} />
+        )}
+      </motion.button>
+    </div>
+  );
+};
+
 // ============ MAIN COMPONENT ============
 
 export const NotesPage = ({ isDark = false, isGlassConnected = true, activeJob = null }) => {
@@ -1083,6 +2069,10 @@ export const NotesPage = ({ isDark = false, isGlassConnected = true, activeJob =
   const [isRecordingOnGlass, setIsRecordingOnGlass] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [lastHUDAction, setLastHUDAction] = useState(null);
+  
+  // Multi-modal input states
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
   
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
@@ -1634,19 +2624,39 @@ export const NotesPage = ({ isDark = false, isGlassConnected = true, activeJob =
         </>
       )}
       
-      {/* FAB - Voice Commands */}
-      <motion.button
-        className="absolute bottom-[100px] right-[24px] w-[56px] h-[56px] rounded-full flex items-center justify-center z-40"
-        style={{
-          background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
-          boxShadow: `0 8px 24px ${isDark ? 'rgba(133, 88, 242, 0.4)' : 'rgba(2, 132, 199, 0.35)'}`,
-        }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setShowVoiceCommands(true)}
-        aria-label="Voice commands"
-      >
-        <Mic className="w-[24px] h-[24px] text-white" strokeWidth={2} />
-      </motion.button>
+      {/* Multi-Modal FAB */}
+      <NoteCreationFAB
+        isDark={isDark}
+        isGlassConnected={isGlassConnected}
+        onVoiceNote={() => setShowVoiceModal(true)}
+        onTypeNote={() => setShowTypeModal(true)}
+      />
+      
+      {/* Voice Recording Modal (App) */}
+      <AnimatePresence>
+        {showVoiceModal && (
+          <VoiceRecordingModal
+            isOpen={showVoiceModal}
+            onClose={() => setShowVoiceModal(false)}
+            onSave={(newNote) => setNotes(prev => [newNote, ...prev])}
+            isDark={isDark}
+            activeJob={activeJob || { id: 'job-1247', name: 'Roof Inspection #1247' }}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Type Note Modal (App) */}
+      <AnimatePresence>
+        {showTypeModal && (
+          <TypeNoteModal
+            isOpen={showTypeModal}
+            onClose={() => setShowTypeModal(false)}
+            onSave={(newNote) => setNotes(prev => [newNote, ...prev])}
+            isDark={isDark}
+            activeJob={activeJob || { id: 'job-1247', name: 'Roof Inspection #1247' }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
