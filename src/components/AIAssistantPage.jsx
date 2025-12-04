@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, Mic, Send, Camera, 
-  Clipboard, HelpCircle, X, Scan, Sparkles
+  ChevronLeft, Mic, Send, Camera, FileText, Search, 
+  Clipboard, HelpCircle, X, CheckCircle, AlertTriangle,
+  Scan, Ruler, FileCheck, Tag, Sparkles, Volume2, Pause, Play
 } from 'lucide-react';
 
 // ============ DESIGN TOKENS ============
@@ -284,6 +285,37 @@ const MessageBubble = ({ message, isUser, isTyping }) => (
   </motion.div>
 );
 
+// ============ AI FEATURE CARD ============
+const AIFeatureCard = ({ icon: Icon, title, subtitle, color, delay }) => (
+  <motion.button
+    className="w-full p-[16px] rounded-[16px] flex items-center gap-[14px] text-left"
+    style={{
+      background: tokens.colors.glassMedium,
+      backdropFilter: 'blur(20px)',
+      border: `1px solid ${tokens.colors.glassBorder}`,
+    }}
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: delay * 0.1 }}
+    whileTap={{ scale: 0.98 }}
+  >
+    <div 
+      className="w-[48px] h-[48px] rounded-[12px] flex items-center justify-center shrink-0"
+      style={{ 
+        background: `${color}15`,
+        boxShadow: `0 0 20px ${color}20`,
+      }}
+    >
+      <Icon className="w-[24px] h-[24px]" style={{ color }} />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="font-['Inter'] font-semibold text-[15px] text-white mb-[2px]">{title}</p>
+      <p className="font-['Inter'] text-[12px] text-white/50">{subtitle}</p>
+    </div>
+    <ChevronLeft className="w-[20px] h-[20px] text-white/30 rotate-180" />
+  </motion.button>
+);
+
 // ============ VOICE INPUT OVERLAY ============
 const VoiceInputOverlay = ({ isOpen, onClose, onComplete }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -444,6 +476,12 @@ export const AIAssistantPage = ({ isDark = true, onBack, userName = 'Sparky' }) 
     "Estimate repair cost",
   ];
   
+  const aiFeatures = [
+    { icon: Scan, title: 'Damage Detection', subtitle: 'Real-time roof analysis', color: tokens.colors.accentPrimary },
+    { icon: Ruler, title: 'Smart Measurements', subtitle: 'Pitch, area & dimensions', color: tokens.colors.accentWarning },
+    { icon: FileCheck, title: 'Report Generator', subtitle: 'Auto-create inspections', color: tokens.colors.accentTertiary },
+    { icon: Tag, title: 'Material Identifier', subtitle: 'Shingle type & warranty', color: tokens.colors.accentSecondary },
+  ];
   
   const handleSendMessage = (text) => {
     if (!text.trim()) return;
@@ -605,6 +643,24 @@ export const AIAssistantPage = ({ isDark = true, onBack, userName = 'Sparky' }) 
                 </div>
               </div>
               
+              {/* AI Features */}
+              <div className="w-full">
+                <p className="font-['Inter'] text-[12px] text-white/40 uppercase tracking-wider mb-[12px]">
+                  AI Capabilities
+                </p>
+                <div className="flex flex-col gap-[10px]">
+                  {aiFeatures.map((feature, i) => (
+                    <AIFeatureCard
+                      key={feature.title}
+                      icon={feature.icon}
+                      title={feature.title}
+                      subtitle={feature.subtitle}
+                      color={feature.color}
+                      delay={i + 12}
+                    />
+                  ))}
+                </div>
+              </div>
             </motion.div>
           ) : (
             <motion.div

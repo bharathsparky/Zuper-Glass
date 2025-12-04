@@ -91,7 +91,7 @@ const sampleNotes = [
 // ============ QUICK CREATE INSPECTION ============
 
 export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = false }) => {
-  const [step, setStep] = useState(1); // 1: Name, 2: Success
+  const [step, setStep] = useState(1); // 1: Location, 2: Name, 3: Success
   const [isLocating, setIsLocating] = useState(true);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
@@ -102,25 +102,25 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
   
-  // Fetch location in background when modal opens
+  // Simulate location fetch
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && step === 1) {
       setIsLocating(true);
       const timer = setTimeout(() => {
         setLocation({ lat: 30.2672, lng: -97.7431 });
         setAddress('123 Oak Street, Austin, TX 78701');
         setIsLocating(false);
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, step]);
   
-  // Auto-focus input when modal opens
+  // Auto-focus input when step changes
   useEffect(() => {
-    if (isOpen && step === 1 && inputRef.current) {
+    if (step === 2 && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
-  }, [isOpen, step]);
+  }, [step]);
   
   // Generate default name based on address
   useEffect(() => {
@@ -150,7 +150,7 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
     };
     
     setIsCreating(false);
-    setStep(2); // Success step
+    setStep(3);
     
     // Play success sound
     const successAudio = new Audio('/assets/comp.mp3');
@@ -251,10 +251,74 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
         <div className="px-[20px] pb-[32px]">
           <AnimatePresence mode="wait">
             {/* Step 1: Location */}
-            {/* Step 1: Name Input */}
             {step === 1 && (
               <motion.div
                 key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col items-center"
+              >
+                {/* Location Icon */}
+                <motion.div
+                  className="w-[80px] h-[80px] rounded-[24px] flex items-center justify-center mb-[20px]"
+                  style={{
+                    background: `linear-gradient(135deg, ${accentColors.primary}20 0%, ${accentColors.primaryLight}20 100%)`,
+                    border: `1px solid ${accentColors.primary}30`,
+                  }}
+                  animate={isLocating ? { scale: [1, 1.05, 1] } : {}}
+                  transition={{ duration: 1.5, repeat: isLocating ? Infinity : 0 }}
+                >
+                  {isLocating ? (
+                    <Loader2 className="w-[32px] h-[32px] animate-spin" style={{ color: accentColors.primary }} />
+                  ) : (
+                    <MapPin className="w-[32px] h-[32px]" style={{ color: accentColors.primary }} />
+                  )}
+                </motion.div>
+                
+                <h3 className="font-['Inter'] font-semibold text-[16px] mb-[8px]" style={{ color: textColors.primary }}>
+                  {isLocating ? 'Finding your location...' : 'Location found!'}
+                </h3>
+                
+                {!isLocating && address && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center"
+                  >
+                    <p className="font-['Inter'] text-[14px] mb-[4px]" style={{ color: textColors.description }}>
+                      {address}
+                    </p>
+                    <p className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                      {location?.lat.toFixed(4)}, {location?.lng.toFixed(4)}
+                    </p>
+                  </motion.div>
+                )}
+                
+                {/* Continue Button */}
+                {!isLocating && (
+                  <motion.button
+                    className="w-full py-[14px] rounded-[12px] mt-[24px] flex items-center justify-center gap-[8px]"
+                    style={{
+                      background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
+                      boxShadow: `0 8px 24px ${accentColors.primary}40`,
+                    }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setStep(2)}
+                  >
+                    <span className="font-['Inter'] font-semibold text-[14px] text-white">Continue</span>
+                    <ChevronRight className="w-[18px] h-[18px] text-white" />
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+            
+            {/* Step 2: Name */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -411,10 +475,10 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
               </motion.div>
             )}
             
-            {/* Step 2: Success */}
-            {step === 2 && (
+            {/* Step 3: Success */}
+            {step === 3 && (
               <motion.div
-                key="step2"
+                key="step3"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex flex-col items-center py-[20px]"
