@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lottie from 'lottie-react';
 
@@ -6,6 +6,7 @@ const SplashScreen = ({ onComplete }) => {
   const [animationData, setAnimationData] = useState(null);
   const [showSplash, setShowSplash] = useState(true);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     // Load the Lottie animation
@@ -13,10 +14,48 @@ const SplashScreen = ({ onComplete }) => {
       .then(response => response.json())
       .then(data => setAnimationData(data))
       .catch(err => console.error('Failed to load animation:', err));
+
+    // Initialize and play audio
+    audioRef.current = new Audio('/assets/riser-02.mp3');
+    audioRef.current.volume = 0.5; // Set volume to 50%
+    
+    // Play audio (with user interaction fallback)
+    const playAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.play().catch(err => {
+          console.log('Audio autoplay blocked:', err);
+        });
+      }
+    };
+    
+    // Try to play immediately
+    playAudio();
+    
+    // Cleanup on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
     if (animationComplete) {
+      // Fade out audio smoothly
+      if (audioRef.current) {
+        const fadeAudio = setInterval(() => {
+          if (audioRef.current && audioRef.current.volume > 0.05) {
+            audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.1);
+          } else {
+            clearInterval(fadeAudio);
+            if (audioRef.current) {
+              audioRef.current.pause();
+            }
+          }
+        }, 50);
+      }
+
       // Fade out splash and transition to login
       const fadeTimer = setTimeout(() => {
         setShowSplash(false);
