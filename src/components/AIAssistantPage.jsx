@@ -450,6 +450,17 @@ export const AIAssistantPage = ({ isDark = true, onBack, userName = 'Sparky' }) 
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [orbState, setOrbState] = useState('idle');
   const inputRef = useRef(null);
+  const audioPlayedRef = useRef(false);
+  
+  // Play bot.mp3 sound on page open
+  useEffect(() => {
+    if (!audioPlayedRef.current) {
+      const audio = new Audio('/assets/bot.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(err => console.log('Audio play prevented:', err));
+      audioPlayedRef.current = true;
+    }
+  }, []);
   
   const quickActions = [
     { icon: Scan, label: 'Scan\nDamage', color: tokens.colors.accentPrimary },
