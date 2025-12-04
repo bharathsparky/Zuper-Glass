@@ -572,6 +572,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
               whileTap={{ scale: 0.98 }}
+              onClick={() => setShowCreateInspection(true)}
               style={{
                 boxShadow: `
                   0 25px 60px rgba(6, 21, 40, 0.5),
@@ -685,6 +686,7 @@ export default function App() {
                   aria-label="Start Creating"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  onClick={() => setShowCreateInspection(true)}
                 >
                   <span className="font-['Inter',sans-serif] font-medium text-[11px] text-emerald-300">
                     Start Creating
