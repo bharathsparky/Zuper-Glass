@@ -903,14 +903,23 @@ const SyncBanner = ({ isDark }) => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
     >
-      {/* Glass Icon - Static */}
+      {/* Photo Thumbnails Grid - 2x3 mini grid */}
       <div 
-        className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center shrink-0"
-        style={{ background: accentBgMedium }}
+        className="w-[44px] h-[32px] rounded-[6px] overflow-hidden shrink-0 grid grid-cols-3 grid-rows-2 gap-[1px]"
+        style={{ background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)' }}
       >
-        <svg width="18" height="12" viewBox="0 0 43 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M40.2794 7.76959C40.2294 7.71531 38.9987 7.66864 38.8615 7.6496C35.6241 7.19294 32.0929 6.83295 28.6986 7.13818C25.1095 7.46103 22.2821 8.9429 18.5997 8.39244C15.9156 7.99149 13.3231 7.20056 10.5816 7.03914C7.75104 6.87295 4.51584 7.26627 1.8541 7.6496C1.68662 7.67341 0.374827 7.71055 0.320461 7.76959C0.282755 7.81102 0.306869 8.79052 0.316515 8.93385C0.322215 9.02147 0.62868 10.5314 0.671208 10.6062C0.884726 10.9819 1.32974 10.4681 1.70372 11.329C2.65468 13.5214 2.82567 18.1227 4.61449 19.5383C7.77209 22.0364 14.4889 21.3102 16.6995 17.5308C17.6513 15.9037 18.2388 12.9599 19.1657 11.5557C19.185 11.5266 19.5107 11.1681 19.5357 11.1605C19.779 11.0876 20.8098 11.0595 21.0645 11.1605C21.5771 11.3638 23.458 16.9784 24.2471 18.0327C26.6918 21.2997 32.9211 21.963 35.9853 19.5383C37.747 18.1446 37.9991 13.488 38.8965 11.329C39.2477 10.4838 39.7265 10.9543 39.9137 10.6376C40.0641 10.3829 40.1351 9.37955 40.1667 9.07004C40.1711 9.02528 40.2767 9.03909 40.2833 8.93385C40.2929 8.79004 40.3175 7.81102 40.2794 7.76959Z" fill={accentColor}/>
-        </svg>
+        {[
+          '/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png',
+          '/assets/figma-assets/3dac2f8aff6da25eba445ef419fec39893f1e7ae.png',
+          '/assets/figma-assets/b8df2b89a6feb23a3e5db6f91aded86a2acb99b9.png',
+          '/assets/figma-assets/e88b8d6014b3e9fbd8ce6a6e66fae42f81d89a1e.png',
+          '/assets/figma-assets/598cd013b8500e290215fdc47888787468011a5c.png',
+          '/assets/figma-assets/3dac2f8aff6da25eba445ef419fec39893f1e7ae.png',
+        ].map((src, i) => (
+          <div key={i} className="w-full h-full overflow-hidden">
+            <img src={src} alt="" className="w-full h-full object-cover" />
+          </div>
+        ))}
       </div>
       
       {/* Content */}
