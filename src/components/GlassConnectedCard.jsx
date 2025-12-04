@@ -57,12 +57,15 @@ export const GlassConnectedCard = ({
     setRotation(prev => prev + diff);
   };
 
-  // Battery color based on level
-  const getBatteryColor = () => {
-    if (batteryLevel > 50) return '#10b981'; // green
-    if (batteryLevel > 20) return '#f59e0b'; // orange
-    return '#ef4444'; // red
+  // Battery fill color - visible inside the battery icon
+  const getBatteryFillColor = () => {
+    if (batteryLevel > 50) return '#4ade80'; // Bright green for good battery
+    if (batteryLevel > 20) return '#fbbf24'; // Yellow for medium
+    return '#f87171'; // Red for low
   };
+  
+  // Battery text color - always white for accessibility on teal background
+  const getBatteryTextColor = () => '#ffffff';
 
   return (
     <motion.div 
@@ -143,41 +146,41 @@ export const GlassConnectedCard = ({
       <div className="relative z-10 p-[20px]">
         {/* Header row */}
         <div className="flex items-center justify-between mb-[8px]">
-          {/* Connected badge */}
+          {/* Connected badge - Dark glass style for better contrast */}
           <div 
             className="flex items-center gap-[6px] px-[10px] py-[5px] rounded-full"
             style={{
-              background: 'rgba(16, 185, 129, 0.2)',
+              background: 'rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
+              border: '1px solid rgba(74, 222, 128, 0.5)',
             }}
           >
             <motion.div 
-              className="w-[6px] h-[6px] rounded-full bg-emerald-400"
-              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+              className="w-[6px] h-[6px] rounded-full"
+              style={{ background: '#4ade80' }}
+              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className="font-['Inter',sans-serif] font-semibold text-[11px] text-emerald-300">
+            <span className="font-['Inter',sans-serif] font-semibold text-[11px] text-white">
               Connected
             </span>
           </div>
 
-          {/* Battery indicator - Premium style */}
+          {/* Battery indicator - Dark glass style for better contrast */}
           <div 
             className="flex items-center gap-[8px] px-[10px] py-[5px] rounded-full"
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
+              background: 'rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
             }}
           >
             <div 
               className="relative w-[24px] h-[12px] rounded-[3px] overflow-hidden"
               style={{
-                border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                border: '1.5px solid rgba(255, 255, 255, 0.5)',
               }}
             >
               <motion.div 
@@ -185,8 +188,7 @@ export const GlassConnectedCard = ({
                 style={{
                   width: `${batteryLevel}%`,
                   maxWidth: 'calc(100% - 2px)',
-                  background: `linear-gradient(90deg, ${getBatteryColor()} 0%, ${getBatteryColor()}dd 100%)`,
-                  boxShadow: `0 0 6px ${getBatteryColor()}80`,
+                  background: getBatteryFillColor(),
                 }}
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(batteryLevel, 100)}%` }}
@@ -195,12 +197,12 @@ export const GlassConnectedCard = ({
               {/* Battery tip */}
               <div 
                 className="absolute right-[-4px] top-[2px] w-[2px] h-[6px] rounded-r-[1px]"
-                style={{ background: 'rgba(255, 255, 255, 0.4)' }}
+                style={{ background: 'rgba(255, 255, 255, 0.5)' }}
               />
             </div>
             <span 
               className="font-['Inter',sans-serif] font-bold text-[12px]"
-              style={{ color: getBatteryColor() }}
+              style={{ color: getBatteryTextColor() }}
             >
               {batteryLevel}%
             </span>
