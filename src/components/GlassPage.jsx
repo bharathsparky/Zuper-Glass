@@ -1087,47 +1087,6 @@ export const GlassPage = ({ isDark = false, isConnected = true, glassInfo = {}, 
             </div>
           </motion.div>
 
-          {/* Quick tips */}
-          <div className="px-[16px] pb-[14px] flex gap-[8px]">
-            {[
-              { icon: Camera, label: 'Take Photo', tip: 'Single click' },
-              { icon: Video, label: 'Record Video', tip: 'Double click' },
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                className="flex-1 p-[10px] rounded-[10px] flex flex-col items-center gap-[6px]"
-                style={{
-                  background: isDark 
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(0, 0, 0, 0.02)',
-                  border: isDark 
-                    ? '1px solid rgba(255, 255, 255, 0.08)'
-                    : '1px solid rgba(0, 0, 0, 0.04)',
-                }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + idx * 0.1 }}
-              >
-                <item.icon 
-                  className="w-[18px] h-[18px]" 
-                  style={{ color: isDark ? '#94a3b8' : '#64748b' }} 
-                  strokeWidth={2} 
-                />
-                <span 
-                  className="font-['Inter'] font-medium text-[10px]"
-                  style={{ color: isDark ? '#e2e8f0' : '#374151' }}
-                >
-                  {item.label}
-                </span>
-                <span 
-                  className="font-['Inter'] text-[9px]"
-                  style={{ color: isDark ? '#64748b' : '#64748b' }}
-                >
-                  {item.tip}
-                </span>
-              </motion.div>
-            ))}
-          </div>
         </motion.div>
 
         {/* Device Management Section - Only show when connected (placed last as less frequently used) */}
