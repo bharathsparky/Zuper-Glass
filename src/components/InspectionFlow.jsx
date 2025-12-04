@@ -317,13 +317,6 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
               >
-                <h3 className="font-['Inter'] font-semibold text-[16px] mb-[4px] text-center" style={{ color: textColors.primary }}>
-                  Name your inspection
-                </h3>
-                <p className="font-['Inter'] text-[13px] mb-[20px] text-center" style={{ color: textColors.muted }}>
-                  You can edit this later
-                </p>
-                
                 {/* Name Input */}
                 <div 
                   className="rounded-[14px] overflow-hidden mb-[16px]"
@@ -343,23 +336,96 @@ export const CreateInspectionModal = ({ isOpen, onClose, onCreated, isDark = fal
                   />
                 </div>
                 
-                {/* Location Preview */}
+                {/* Visual Map Location Preview */}
                 <div 
-                  className="flex items-center gap-[10px] p-[12px] rounded-[12px] mb-[20px]"
-                  style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' }}
+                  className="rounded-[14px] overflow-hidden mb-[20px]"
+                  style={{
+                    background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.8)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.06)',
+                  }}
                 >
-                  <div 
-                    className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
-                    style={{ background: `${accentColors.success}15` }}
-                  >
-                    <MapPin className="w-[16px] h-[16px]" style={{ color: accentColors.success }} />
+                  {/* Mini Map */}
+                  <div className="relative h-[100px] overflow-hidden">
+                    {/* Map Background */}
+                    <div 
+                      className="absolute inset-0"
+                      style={{
+                        background: isDark
+                          ? 'linear-gradient(135deg, #1a2744 0%, #243b55 50%, #1e3a5f 100%)'
+                          : 'linear-gradient(135deg, #e8f4f8 0%, #d4e8ed 50%, #c5dde5 100%)',
+                      }}
+                    />
+                    
+                    {/* Grid Pattern */}
+                    <div 
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'} 1px, transparent 1px),
+                          linear-gradient(90deg, ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'} 1px, transparent 1px)
+                        `,
+                        backgroundSize: '16px 16px',
+                      }}
+                    />
+                    
+                    {/* Roads */}
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
+                      <path d="M 0,50 L 200,50" stroke={isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'} strokeWidth="6" fill="none"/>
+                      <path d="M 100,0 L 100,100" stroke={isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)'} strokeWidth="4" fill="none"/>
+                    </svg>
+                    
+                    {/* Location Pin - Centered */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      {/* Pulse Animation */}
+                      <motion.div
+                        className="absolute w-[40px] h-[40px] rounded-full"
+                        style={{ background: `${accentColors.success}30` }}
+                        animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      {/* Pin */}
+                      <div 
+                        className="relative flex flex-col items-center"
+                        style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))' }}
+                      >
+                        <div 
+                          className="w-[32px] h-[32px] rounded-full flex items-center justify-center"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${accentColors.success} 0%, #34d399 100%)`,
+                            boxShadow: `0 4px 12px ${accentColors.success}50`,
+                          }}
+                        >
+                          <MapPin className="w-[16px] h-[16px] text-white" />
+                        </div>
+                        <div 
+                          className="w-0 h-0 -mt-[2px]"
+                          style={{
+                            borderLeft: '7px solid transparent',
+                            borderRight: '7px solid transparent',
+                            borderTop: `9px solid ${accentColors.success}`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-['Inter'] text-[12px] truncate" style={{ color: textColors.description }}>
-                      {address}
-                    </p>
+                  
+                  {/* Address */}
+                  <div className="p-[12px] flex items-center gap-[10px]">
+                    <div 
+                      className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center shrink-0"
+                      style={{ background: `${accentColors.success}15` }}
+                    >
+                      <CheckCircle className="w-[16px] h-[16px]" style={{ color: accentColors.success }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-['Inter'] font-medium text-[12px] truncate" style={{ color: textColors.primary }}>
+                        {address.split(',')[0]}
+                      </p>
+                      <p className="font-['Inter'] text-[11px] truncate" style={{ color: textColors.muted }}>
+                        {address.split(',').slice(1).join(',').trim()}
+                      </p>
+                    </div>
                   </div>
-                  <CheckCircle className="w-[16px] h-[16px] shrink-0" style={{ color: accentColors.success }} />
                 </div>
                 
                 {/* Actions */}
@@ -537,19 +603,21 @@ export const InspectionDetailsPage = ({
           </motion.button>
           
           <div className="flex items-center gap-[8px]">
-            {/* Status Badge - Solid background for visibility */}
-            <div 
-              className="px-[12px] py-[6px] rounded-full"
-              style={{ 
-                background: status.color,
-                boxShadow: `0 2px 8px ${status.color}50`,
+            {/* Mark Complete Button */}
+            <motion.button
+              className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
               }}
+              whileTap={{ scale: 0.9 }}
             >
-              <span className="font-['Inter'] font-semibold text-[11px] text-white">
-                {status.label}
-              </span>
-            </div>
+              <Check className="w-[20px] h-[20px] text-white" />
+            </motion.button>
             
+            {/* Edit Button */}
             <motion.button
               className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
               style={{
@@ -932,20 +1000,26 @@ export const InspectionDetailsPage = ({
         </div>
       </div>
       
-      {/* Floating Complete Button */}
-      <motion.button
-        className="absolute bottom-[80px] right-[20px] px-[20px] py-[14px] rounded-full flex items-center gap-[10px] z-20"
-        style={{
-          background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
-          boxShadow: `0 8px 24px ${accentColors.primary}50`,
-        }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <CheckCircle className="w-[20px] h-[20px] text-white" />
-        <span className="font-['Inter'] font-semibold text-[14px] text-white">
-          Complete
-        </span>
-      </motion.button>
+      {/* Open in Zuper App Button - Centered at bottom */}
+      <div className="absolute bottom-[90px] left-0 right-0 flex justify-center z-20 px-[20px]">
+        <motion.button
+          className="px-[20px] py-[12px] rounded-full flex items-center gap-[8px]"
+          style={{
+            background: '#262626',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+          }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {/* Zuper Logo */}
+          <div 
+            className="w-[20px] h-[20px] rounded-[4px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)' }}
+          >
+            <span className="text-white font-bold text-[10px]">Z</span>
+          </div>
+          <span className="font-['Inter'] font-medium text-[13px] text-white">Open in Zuper App</span>
+        </motion.button>
+      </div>
     </div>
   );
 };
