@@ -386,70 +386,58 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 style={{
-                  // Multi-layer shadows with cyan/teal glow - theme aware
-                  boxShadow: isDarkMode 
-                    ? `0 25px 60px rgba(8,145,178,0.3),
-                       0 12px 28px rgba(0,0,0,0.15),
-                       0 4px 12px rgba(0,0,0,0.1),
-                       0 0 50px rgba(6,182,212,0.2)`
-                    : `0 25px 60px rgba(14,116,144,0.2),
-                       0 12px 28px rgba(0,0,0,0.08),
-                       0 4px 12px rgba(0,0,0,0.05),
-                       0 0 30px rgba(6,182,212,0.15)`
+                  // Deep shadow matching connected card
+                  boxShadow: `
+                    0 25px 60px rgba(6, 21, 40, 0.5),
+                    0 12px 28px rgba(12, 54, 90, 0.35),
+                    0 4px 12px rgba(0, 0, 0, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                    0 0 40px rgba(6, 182, 212, 0.15)
+                  `
                 }}
               >
-                {/* Rich Mesh Gradient Background - Theme Aware */}
+                {/* Deep Dark Gradient Background - Matching Connected Card */}
                 <div className="absolute inset-0 rounded-[16px]">
-                  {/* Base gradient layer - Dark: Deep teal, Light: Darker teal for better contrast */}
+                  {/* Base gradient layer - Deep dark blue matching connected card */}
                   <div 
                     className="absolute inset-0 rounded-[16px]"
                     style={{
-                      background: isDarkMode 
-                        ? "linear-gradient(135deg, #0f172a 0%, #0e4d64 25%, #0891b2 50%, #06b6d4 75%, #22d3ee 100%)"
-                        : "linear-gradient(135deg, #155e75 0%, #0e7490 25%, #0891b2 50%, #0e7490 75%, #164e63 100%)"
+                      background: `linear-gradient(135deg, 
+                        #0c1929 0%, 
+                        #0f2744 20%,
+                        #12365a 40%,
+                        #0d2847 60%,
+                        #091e3a 80%,
+                        #061528 100%
+                      )`
                     }}
                   />
-                  {/* Radial overlay - warm accent bottom left */}
+                  {/* Tech grid pattern */}
+                  <div 
+                    className="absolute inset-0 rounded-[16px] opacity-[0.12]"
+                    style={{
+                      backgroundImage: `
+                        linear-gradient(rgba(6, 182, 212, 0.3) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, transparent 1px)
+                      `,
+                      backgroundSize: '25px 25px',
+                    }}
+                  />
+                  {/* Aurora overlay */}
                   <div 
                     className="absolute inset-0 rounded-[16px]"
                     style={{
-                      background: isDarkMode 
-                        ? "radial-gradient(ellipse 60% 50% at 0% 100%, rgba(20,184,166,0.4) 0%, transparent 50%)"
-                        : "radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255,255,255,0.2) 0%, transparent 50%)"
-                    }}
-                  />
-                  {/* Radial overlay - bright cyan top right */}
-                  <div 
-                    className="absolute inset-0 rounded-[16px]"
-                    style={{
-                      background: isDarkMode 
-                        ? "radial-gradient(ellipse 50% 40% at 100% 0%, rgba(34,211,238,0.5) 0%, transparent 50%)"
-                        : "radial-gradient(ellipse 50% 40% at 100% 0%, rgba(255,255,255,0.3) 0%, transparent 50%)"
-                    }}
-                  />
-                  {/* Radial overlay - deep center for depth */}
-                  <div 
-                    className="absolute inset-0 rounded-[16px]"
-                    style={{
-                      background: isDarkMode 
-                        ? "radial-gradient(ellipse 70% 60% at 30% 60%, rgba(15,23,42,0.3) 0%, transparent 50%)"
-                        : "radial-gradient(ellipse 70% 60% at 30% 60%, rgba(14,116,144,0.2) 0%, transparent 50%)"
-                    }}
-                  />
-                  {/* Subtle noise texture for depth */}
-                  <div 
-                    className="absolute inset-0 rounded-[16px] opacity-[0.03]"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
+                      background: `
+                        radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.12) 0%, transparent 50%)
+                      `
                     }}
                   />
                   {/* Inner highlight for premium feel */}
                   <div 
                     className="absolute inset-0 rounded-[16px]"
                     style={{
-                      boxShadow: isDarkMode 
-                        ? "inset 0 1px 2px rgba(255,255,255,0.12), inset 0 -1px 3px rgba(0,0,0,0.15)"
-                        : "inset 0 1px 2px rgba(255,255,255,0.25), inset 0 -1px 3px rgba(0,0,0,0.08)"
+                      boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 3px rgba(0,0,0,0.2)"
                     }}
                   />
                 </div>

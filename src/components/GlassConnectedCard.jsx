@@ -187,30 +187,32 @@ export const GlassConnectedCard = ({
         ))}
       </div>
 
-      {/* Electric energy lines - Very subtle occasional sweep */}
+      {/* Electric energy lines - Subtle but visible sweep */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
         <motion.path
-          d="M 0 70 Q 100 50, 172 65 T 345 55"
+          d="M 0 80 Q 80 50, 172 75 T 345 60"
           fill="none"
           stroke="url(#energyGrad1)"
-          strokeWidth="0.5"
+          strokeWidth="1.5"
           strokeLinecap="round"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ 
             pathLength: [0, 1, 1, 0],
-            opacity: [0, 0.25, 0.25, 0],
+            opacity: [0, 0.6, 0.6, 0],
           }}
           transition={{
-            duration: 4,
+            duration: 3,
             repeat: Infinity,
-            repeatDelay: 12,
+            repeatDelay: 10,
             ease: "easeInOut",
           }}
         />
         <defs>
           <linearGradient id="energyGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
-            <stop offset="50%" stopColor="rgba(34, 211, 238, 0.4)" />
+            <stop offset="20%" stopColor="rgba(34, 211, 238, 0.8)" />
+            <stop offset="50%" stopColor="rgba(99, 102, 241, 0.9)" />
+            <stop offset="80%" stopColor="rgba(167, 139, 250, 0.8)" />
             <stop offset="100%" stopColor="rgba(167, 139, 250, 0)" />
           </linearGradient>
         </defs>
