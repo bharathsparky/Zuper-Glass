@@ -1274,8 +1274,8 @@ const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => 
         </div>
       )}
       
-      {/* Main Recording Area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-[24px]">
+      {/* Main Recording Area - Added overflow-y-auto and pb for scrolling when content is long */}
+      <div className="flex-1 flex flex-col items-center justify-center px-[24px] overflow-y-auto pb-[100px] no-scrollbar">
         {!isRecording && !transcription ? (
           /* Ready to Record State */
           <div className="flex flex-col items-center">
@@ -1699,8 +1699,8 @@ const TypeNoteModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
         </div>
       )}
       
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-[20px] py-[16px]">
+      {/* Content - Added pb-[120px] for proper scroll area */}
+      <div className="flex-1 overflow-y-auto px-[20px] pt-[16px] pb-[120px] no-scrollbar">
         {/* Text Editor */}
         <div 
           className="rounded-[14px] overflow-hidden mb-[16px]"
