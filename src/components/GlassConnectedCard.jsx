@@ -74,191 +74,160 @@ export const GlassConnectedCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5, type: "spring" }}
       style={{
+        // Deep dark gradient - makes energy effects pop
         background: `
           linear-gradient(135deg, 
-            rgba(6, 78, 117, 0.95) 0%, 
-            rgba(14, 116, 144, 0.9) 25%,
-            rgba(21, 128, 156, 0.88) 50%,
-            rgba(6, 95, 124, 0.92) 75%,
-            rgba(8, 62, 97, 0.95) 100%
+            #0c1929 0%, 
+            #0f2744 20%,
+            #12365a 40%,
+            #0d2847 60%,
+            #091e3a 80%,
+            #061528 100%
           )
         `,
         boxShadow: `
-          0 25px 60px rgba(6, 78, 117, 0.35),
-          0 12px 28px rgba(14, 116, 144, 0.25),
-          0 4px 12px rgba(0, 0, 0, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 0.15)
+          0 25px 60px rgba(6, 21, 40, 0.5),
+          0 12px 28px rgba(12, 54, 90, 0.35),
+          0 4px 12px rgba(0, 0, 0, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 0 40px rgba(6, 182, 212, 0.15)
         `,
       }}
     >
       {/* === HIGH-TECH FUTURISTIC BACKGROUND === */}
       
-      {/* Tech grid pattern - subtle circuit board effect */}
+      {/* Tech grid pattern - visible circuit board effect on dark bg */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.08]"
+        className="absolute inset-0 pointer-events-none opacity-[0.15]"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            linear-gradient(rgba(6, 182, 212, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, transparent 1px)
           `,
-          backgroundSize: '30px 30px',
+          backgroundSize: '25px 25px',
         }}
       />
 
-      {/* Aurora/energy flow effect */}
+      {/* Aurora/energy flow effect - Slow and subtle */}
       <motion.div 
         className="absolute inset-0 pointer-events-none"
         animate={{
           background: [
-            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.2) 0%, transparent 50%)',
-            'radial-gradient(ellipse 100% 80% at 50% 0%, rgba(133, 88, 242, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 20% 100%, rgba(6, 182, 212, 0.2) 0%, transparent 50%)',
-            'radial-gradient(ellipse 100% 80% at 80% 0%, rgba(16, 185, 129, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 50% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
-            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.2) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 50% 0%, rgba(133, 88, 242, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 20% 100%, rgba(6, 182, 212, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
           ],
         }}
         transition={{
-          duration: 8,
+          duration: 12,
           repeat: Infinity,
           ease: "easeInOut",
         }}
       />
 
-      {/* Energy pulse rings */}
+      {/* Energy pulse rings - Slow and subtle */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <motion.div
             key={`ring-${i}`}
-            className="absolute rounded-full border"
+            className="absolute rounded-full"
             style={{
-              width: '200px',
-              height: '200px',
+              width: '160px',
+              height: '160px',
               left: '50%',
               top: '45%',
-              marginLeft: '-100px',
-              marginTop: '-100px',
-              borderColor: 'rgba(6, 182, 212, 0.15)',
+              marginLeft: '-80px',
+              marginTop: '-80px',
+              border: '1px solid rgba(6, 182, 212, 0.25)',
+              boxShadow: '0 0 15px rgba(6, 182, 212, 0.15)',
             }}
             animate={{
-              scale: [1, 2.5],
+              scale: [1, 2.2],
               opacity: [0.4, 0],
             }}
             transition={{
-              duration: 4,
+              duration: 6,
               repeat: Infinity,
-              delay: i * 1.3,
+              delay: i * 3,
               ease: "easeOut",
             }}
           />
         ))}
       </div>
 
-      {/* Floating energy particles - Stars/Data points */}
+      {/* Floating energy particles - Minimal and subtle */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full"
             style={{
-              width: `${1.5 + (i % 3)}px`,
-              height: `${1.5 + (i % 3)}px`,
-              left: `${(i * 5) % 100}%`,
-              top: `${(i * 17) % 100}%`,
-              background: i % 3 === 0 
-                ? 'rgba(6, 182, 212, 0.8)'
-                : i % 3 === 1
-                ? 'rgba(133, 88, 242, 0.7)'
-                : 'rgba(255, 255, 255, 0.6)',
-              boxShadow: i % 3 === 0 
-                ? '0 0 6px rgba(6, 182, 212, 0.6)'
-                : i % 3 === 1
-                ? '0 0 6px rgba(133, 88, 242, 0.5)'
-                : '0 0 4px rgba(255, 255, 255, 0.4)',
+              width: `${1.5 + (i % 2)}px`,
+              height: `${1.5 + (i % 2)}px`,
+              left: `${10 + (i * 12) % 80}%`,
+              top: `${15 + (i * 11) % 70}%`,
+              background: i % 2 === 0 
+                ? 'rgba(34, 211, 238, 0.6)'
+                : 'rgba(167, 139, 250, 0.5)',
+              boxShadow: i % 2 === 0 
+                ? '0 0 4px rgba(34, 211, 238, 0.4)'
+                : '0 0 4px rgba(167, 139, 250, 0.3)',
             }}
             animate={{
-              y: [0, -20 - (i % 15), 0],
-              x: [0, (i % 2 === 0 ? 8 : -8), 0],
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.3, 1],
+              y: [0, -12, 0],
+              opacity: [0.2, 0.5, 0.2],
             }}
             transition={{
-              duration: 3 + (i % 4),
+              duration: 5 + (i % 3),
               repeat: Infinity,
-              delay: i * 0.15,
+              delay: i * 0.8,
               ease: "easeInOut",
             }}
           />
         ))}
       </div>
 
-      {/* Electric energy lines - Subtle lightning streaks */}
+      {/* Electric energy lines - Very subtle occasional sweep */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-        {/* Energy line 1 */}
         <motion.path
-          d="M 0 50 Q 50 30, 100 60 T 200 40 T 300 70 T 345 50"
+          d="M 0 70 Q 100 50, 172 65 T 345 55"
           fill="none"
           stroke="url(#energyGrad1)"
-          strokeWidth="1"
+          strokeWidth="0.5"
           strokeLinecap="round"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ 
             pathLength: [0, 1, 1, 0],
-            opacity: [0, 0.6, 0.6, 0],
+            opacity: [0, 0.25, 0.25, 0],
           }}
           transition={{
-            duration: 3,
+            duration: 4,
             repeat: Infinity,
-            repeatDelay: 4,
-            ease: "easeInOut",
-          }}
-        />
-        {/* Energy line 2 */}
-        <motion.path
-          d="M 345 120 Q 280 100, 220 130 T 120 110 T 50 140 T 0 120"
-          fill="none"
-          stroke="url(#energyGrad2)"
-          strokeWidth="1"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ 
-            pathLength: [0, 1, 1, 0],
-            opacity: [0, 0.5, 0.5, 0],
-          }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            repeatDelay: 5,
-            delay: 2,
+            repeatDelay: 12,
             ease: "easeInOut",
           }}
         />
         <defs>
           <linearGradient id="energyGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(6, 182, 212, 0)" />
-            <stop offset="30%" stopColor="rgba(6, 182, 212, 0.8)" />
-            <stop offset="70%" stopColor="rgba(133, 88, 242, 0.8)" />
-            <stop offset="100%" stopColor="rgba(133, 88, 242, 0)" />
-          </linearGradient>
-          <linearGradient id="energyGrad2" x1="100%" y1="0%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor="rgba(133, 88, 242, 0)" />
-            <stop offset="30%" stopColor="rgba(133, 88, 242, 0.6)" />
-            <stop offset="70%" stopColor="rgba(16, 185, 129, 0.6)" />
-            <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
+            <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
+            <stop offset="50%" stopColor="rgba(34, 211, 238, 0.4)" />
+            <stop offset="100%" stopColor="rgba(167, 139, 250, 0)" />
           </linearGradient>
         </defs>
       </svg>
 
-      {/* Holographic scanline effect */}
+      {/* Holographic scanline effect - Very subtle */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.03) 50%, transparent 100%)',
-          backgroundSize: '100% 8px',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.02) 50%, transparent 100%)',
+          backgroundSize: '100% 6px',
         }}
         animate={{
           backgroundPosition: ['0 0', '0 100%'],
         }}
         transition={{
-          duration: 4,
+          duration: 8,
           repeat: Infinity,
           ease: "linear",
         }}
