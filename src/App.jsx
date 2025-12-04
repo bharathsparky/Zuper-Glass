@@ -5,7 +5,6 @@ import { HomeIcon, PhotoIcon, MapIcon, CameraIcon, NotesIcon, PlusIcon, SignalIc
 import { WeatherGreeting } from "./components/WeatherGreeting";
 import { GalleryPage } from "./components/GalleryPage";
 import { NotesPage } from "./components/NotesPage";
-import { MapsPage } from "./components/MapsPage";
 import { CameraScreen } from "./components/CameraScreen";
 import { GlassConnectedCard } from "./components/GlassConnectedCard";
 import { GlassPage, SmartGlassGuide } from "./components/GlassPage";
@@ -556,7 +555,7 @@ export default function App() {
             {/* Quick Actions - Glass-themed */}
             <div className="flex gap-[20px] items-start justify-center w-full shrink-0 px-[8px]">
               <ActionButton icon={PlusIcon} label="New" delay={0} isDark={isDarkMode} />
-              <ActionButton icon={MapIcon} label="Maps" delay={1} isDark={isDarkMode} onClick={() => setActivePage('maps')} />
+              <ActionButton icon={MapIcon} label="Maps" delay={1} isDark={isDarkMode} />
               <ActionButton icon={CameraIcon} label="Camera" delay={2} isDark={isDarkMode} onClick={() => setShowCameraScreen(true)} />
               <ActionButton icon={NotesIcon} label="Notes" delay={3} isDark={isDarkMode} onClick={() => setActivePage('notes')} />
             </div>
@@ -892,17 +891,6 @@ export default function App() {
                 transition={{ duration: 0.25 }}
               >
                 <NotesPage isDark={isDarkMode} />
-              </motion.div>
-            ) : activePage === 'maps' ? (
-              <motion.div
-                key="maps-content"
-                className="absolute inset-0"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <MapsPage isDark={isDarkMode} isGlassConnected={isGlassConnected} />
               </motion.div>
             ) : null}
           </AnimatePresence>
