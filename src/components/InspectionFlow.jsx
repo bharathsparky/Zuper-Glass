@@ -498,8 +498,8 @@ export const InspectionDetailsPage = ({
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden">
-      {/* Hero Cover Image */}
-      <div className="relative h-[200px] shrink-0">
+      {/* Hero Cover with Blended Title */}
+      <div className="relative h-[240px] shrink-0">
         {/* Cover Image */}
         <div className="absolute inset-0">
           <img 
@@ -507,13 +507,13 @@ export const InspectionDetailsPage = ({
             alt="Site cover"
             className="w-full h-full object-cover"
           />
-          {/* Gradient Overlay */}
+          {/* Gradient Overlay - Darker at bottom for text */}
           <div 
             className="absolute inset-0"
             style={{
               background: isDark
-                ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(15, 23, 42, 0.95) 100%)'
-                : 'linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(255, 255, 255, 0.95) 100%)',
+                ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.4) 40%, rgba(15, 23, 42, 0.85) 70%, rgba(15, 23, 42, 0.98) 100%)'
+                : 'linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.6) 70%, rgba(0, 0, 0, 0.85) 100%)',
             }}
           />
         </div>
@@ -523,9 +523,10 @@ export const InspectionDetailsPage = ({
           <motion.button
             className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
             style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
             }}
             whileTap={{ scale: 0.9 }}
             onClick={onBack}
@@ -533,32 +534,65 @@ export const InspectionDetailsPage = ({
             <ChevronLeft className="w-[22px] h-[22px] text-white" />
           </motion.button>
           
-          <motion.button
-            className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-            style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-            }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <MoreVertical className="w-[20px] h-[20px] text-white" />
-          </motion.button>
+          <div className="flex items-center gap-[8px]">
+            {/* Status Badge */}
+            <div 
+              className="px-[12px] py-[6px] rounded-full"
+              style={{ 
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: `1px solid ${status.color}50`,
+              }}
+            >
+              <span className="font-['Inter'] font-semibold text-[11px]" style={{ color: status.color }}>
+                {status.label}
+              </span>
+            </div>
+            
+            <motion.button
+              className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <MoreVertical className="w-[20px] h-[20px] text-white" />
+            </motion.button>
+          </div>
         </div>
         
-        {/* Status Badge - Floating */}
-        <div className="absolute top-[12px] left-1/2 -translate-x-1/2 z-10">
-          <div 
-            className="px-[14px] py-[6px] rounded-full"
-            style={{ 
-              background: 'rgba(0, 0, 0, 0.5)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: `1px solid ${status.color}50`,
-            }}
-          >
-            <span className="font-['Inter'] font-semibold text-[11px]" style={{ color: status.color }}>
-              {status.label}
+        {/* Title & Info - Overlaid on Hero */}
+        <div className="absolute bottom-0 left-0 right-0 px-[20px] pb-[20px] z-10">
+          {/* Title Row */}
+          <div className="flex items-end justify-between gap-[12px] mb-[10px]">
+            <h1 className="font-['Space_Grotesk'] font-bold text-[22px] leading-tight text-white flex-1">
+              {inspection.name}
+            </h1>
+            <span className="font-['Inter'] font-medium text-[14px] text-white/60 shrink-0">
+              #{inspection.id?.slice(-4) || '2134'}
+            </span>
+          </div>
+          
+          {/* Customer & Address */}
+          <div className="flex items-start gap-[6px] mb-[8px]">
+            <MapPin className="w-[14px] h-[14px] text-white/60 mt-[2px] shrink-0" />
+            <p className="font-['Inter'] text-[13px] text-white/80 leading-[1.4]">
+              {inspection.customer?.name && (
+                <span className="font-semibold text-white">{inspection.customer.name}, </span>
+              )}
+              {inspection.address}
+            </p>
+          </div>
+          
+          {/* Time */}
+          <div className="flex items-center gap-[6px]">
+            <Clock className="w-[13px] h-[13px] text-white/50" />
+            <span className="font-['Inter'] text-[12px] text-white/60">
+              {formatDate(inspection.createdAt)}, {formatTime(inspection.createdAt)}
             </span>
           </div>
         </div>
@@ -569,100 +603,109 @@ export const InspectionDetailsPage = ({
         className="flex-1 overflow-y-auto no-scrollbar"
         style={{
           background: isDark
-            ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, #0f172a 100%)'
-            : 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, #f8fafc 100%)',
-          marginTop: '-40px',
-          borderRadius: '24px 24px 0 0',
-          position: 'relative',
-          zIndex: 10,
+            ? '#0f172a'
+            : '#f8fafc',
         }}
       >
-        <div className="px-[20px] pt-[24px] pb-[180px]">
-          {/* Title Section */}
-          <div className="mb-[20px]">
-            <h1 
-              className="font-['Space_Grotesk'] font-bold text-[24px] leading-tight mb-[8px]"
-              style={{ color: textColors.primary }}
-            >
-              {inspection.name}
-            </h1>
-            <div className="flex items-center gap-[6px]">
-              <MapPin className="w-[14px] h-[14px]" style={{ color: textColors.muted }} />
-              <p className="font-['Inter'] text-[13px]" style={{ color: textColors.muted }}>
-                {inspection.address}
-              </p>
-            </div>
-          </div>
+        <div className="px-[20px] pt-[20px] pb-[180px]">
           
-          {/* Stats Row - Compact */}
-          <div 
-            className="flex items-center justify-between p-[16px] rounded-[16px] mb-[20px]"
-            style={{
-              background: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)',
-              border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.04)',
-            }}
-          >
+          {/* Quick Actions - Navigate, Call, Camera (Figma style) */}
+          <div className="flex gap-[12px] mb-[20px]">
             {[
-              { value: inspection.stats.photos, label: 'Photos', color: '#007AFF' },
-              { value: inspection.stats.notes, label: 'Notes', color: '#10b981' },
-              { value: inspection.stats.issues, label: 'Issues', color: '#FF3B30' },
-            ].map((stat, i) => (
-              <div key={i} className="flex-1 text-center">
-                <p className="font-['Space_Grotesk'] font-bold text-[22px]" style={{ color: stat.color }}>
-                  {stat.value}
-                </p>
-                <p className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
-                  {stat.label}
-                </p>
-              </div>
+              { icon: Navigation, label: 'Navigate' },
+              { icon: Phone, label: 'Call' },
+              { icon: Camera, label: 'Camera', onClick: onTakePhoto },
+            ].map((item) => (
+              <motion.button
+                key={item.label}
+                className="flex-1 flex flex-col items-center justify-center gap-[6px] p-[14px] rounded-[12px]"
+                style={{
+                  background: isDark ? 'rgba(255, 255, 255, 0.04)' : '#ffffff',
+                  border: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.08)',
+                  boxShadow: isDark ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+                whileTap={{ scale: 0.96 }}
+                onClick={item.onClick}
+              >
+                <item.icon className="w-[22px] h-[22px]" style={{ color: textColors.primary }} />
+                <span className="font-['Inter'] font-medium text-[12px]" style={{ color: textColors.primary }}>
+                  {item.label}
+                </span>
+              </motion.button>
             ))}
           </div>
           
-          {/* Quick Actions - Large Buttons */}
-          <div className="flex gap-[12px] mb-[24px]">
-            <motion.button
-              className="flex-1 p-[20px] rounded-[16px] flex flex-col items-center gap-[10px]"
-              style={{
-                background: isDark 
-                  ? 'linear-gradient(135deg, rgba(0, 122, 255, 0.15) 0%, rgba(0, 122, 255, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(0, 122, 255, 0.12) 0%, rgba(0, 122, 255, 0.06) 100%)',
-                border: '1px solid rgba(0, 122, 255, 0.2)',
-              }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onTakePhoto}
-            >
-              <div 
-                className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(0, 122, 255, 0.2)' }}
-              >
-                <Camera className="w-[24px] h-[24px]" style={{ color: '#007AFF' }} />
+          {/* Job Gallery Card */}
+          <div 
+            className="rounded-[16px] overflow-hidden mb-[20px]"
+            style={{
+              background: isDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid rgba(0, 0, 0, 0.06)',
+              boxShadow: isDark ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.04)',
+            }}
+          >
+            {/* Gallery Header */}
+            <div className="flex items-center justify-between px-[16px] pt-[14px] pb-[12px]">
+              <p className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+                Job Gallery ({inspection.stats.photos})
+              </p>
+              <div className="flex items-center gap-[4px]">
+                <span className="font-['Inter'] text-[12px]" style={{ color: textColors.secondary }}>
+                  See all
+                </span>
+                <ChevronRight className="w-[14px] h-[14px]" style={{ color: textColors.secondary }} />
               </div>
-              <span className="font-['Inter'] font-semibold text-[14px]" style={{ color: '#007AFF' }}>
-                Take Photo
-              </span>
-            </motion.button>
+            </div>
             
-            <motion.button
-              className="flex-1 p-[20px] rounded-[16px] flex flex-col items-center gap-[10px]"
-              style={{
-                background: isDark 
-                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.06) 100%)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
+            {/* Photo Thumbnails - Horizontal scroll */}
+            <div className="px-[16px] pb-[16px] overflow-x-auto no-scrollbar">
+              <div className="flex gap-[10px]">
+                {samplePhotos.map((photo) => (
+                  <div 
+                    key={photo.id}
+                    className="w-[60px] h-[60px] rounded-[8px] shrink-0 overflow-hidden relative"
+                    style={{
+                      border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+                    }}
+                  >
+                    <img 
+                      src={photo.thumbnail}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Import from Glass Notification */}
+            <div 
+              className="flex items-center gap-[10px] px-[16px] py-[14px]"
+              style={{ 
+                background: isDark ? 'rgba(255,255,255,0.02)' : '#fef7ed',
+                borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
               }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onAddNote}
             >
               <div 
-                className="w-[48px] h-[48px] rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                className="w-[28px] h-[28px] rounded-[6px] flex items-center justify-center shrink-0"
+                style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
               >
-                <Mic className="w-[24px] h-[24px]" style={{ color: '#10b981' }} />
+                <Image className="w-[16px] h-[16px]" style={{ color: isDark ? '#fff' : '#262626' }} />
               </div>
-              <span className="font-['Inter'] font-semibold text-[14px]" style={{ color: '#10b981' }}>
-                Voice Note
-              </span>
-            </motion.button>
+              <p className="flex-1 font-['Inter'] text-[12px] leading-[1.4]" style={{ color: textColors.muted }}>
+                <span className="font-medium" style={{ color: textColors.primary }}>4 photos</span>
+                {' '}available in glass
+              </p>
+              <motion.button
+                className="px-[12px] py-[4px] rounded-full shrink-0"
+                style={{ background: isDark ? '#fff' : '#262626' }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="font-['Inter'] font-medium text-[10px]" style={{ color: isDark ? '#262626' : '#fff' }}>
+                  Import
+                </span>
+              </motion.button>
+            </div>
           </div>
           
           {/* Info Card */}
