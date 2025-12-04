@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group">
+<g id="Path">
+</g>
+<path id="Path_2" d="M17.5 9.33333H17.5117" stroke="var(--stroke-0, #A16207)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect id="Rectangle" x="4.66667" y="4.66667" width="18.6667" height="18.6667" rx="3" stroke="var(--stroke-0, #A16207)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Path_3" d="M4.66667 17.5L9.33333 12.8333C10.4162 11.7913 11.7504 11.7913 12.8333 12.8333L18.6667 18.6667" stroke="var(--stroke-0, #A16207)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Path_4" d="M16.3333 16.3333L17.5 15.1667C18.5829 14.1246 19.9171 14.1246 21 15.1667L23.3333 17.5" stroke="var(--stroke-0, #A16207)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
