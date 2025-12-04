@@ -42,37 +42,39 @@ const SplashScreen = ({ onComplete }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
           style={{
-            // Dark theme background matching the app
-            background: `
-              radial-gradient(ellipse 120% 80% at 50% 0%, rgba(133, 88, 242, 0.2) 0%, transparent 50%),
-              radial-gradient(ellipse 100% 60% at 80% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-              linear-gradient(180deg, #0f172a 0%, #1e293b 30%, #0f172a 70%, #020617 100%)
-            `,
+            // White background for the logo animation (as designed)
+            background: '#FFFFFF',
           }}
         >
+          {/* Dark theme gradient overlay - fades in during transition */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: animationComplete ? 1 : 0 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              background: `
+                radial-gradient(ellipse 120% 80% at 50% 0%, rgba(133, 88, 242, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse 100% 60% at 80% 80%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+                linear-gradient(180deg, #0f172a 0%, #1e293b 30%, #0f172a 70%, #020617 100%)
+              `,
+            }}
+          />
+
           {/* Full Screen Lottie Animation */}
           {animationData ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* Dark overlay to blend the Lottie colors */}
-              <div 
-                className="absolute inset-0 pointer-events-none mix-blend-multiply"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.5) 50%, rgba(15,23,42,0.3) 100%)',
-                }}
-              />
-              <Lottie
-                animationData={animationData}
-                loop={false}
-                autoplay={true}
-                style={{ 
-                  width: '100%', 
-                  height: '100%',
-                  position: 'absolute',
-                  inset: 0,
-                }}
-                onComplete={handleAnimationComplete}
-              />
-            </div>
+            <Lottie
+              animationData={animationData}
+              loop={false}
+              autoplay={true}
+              style={{ 
+                width: '100%', 
+                height: '100%',
+                position: 'absolute',
+                inset: 0,
+              }}
+              onComplete={handleAnimationComplete}
+            />
           ) : (
             // Premium loading state while Lottie loads
             <div 
