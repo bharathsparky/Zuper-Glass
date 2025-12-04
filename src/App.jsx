@@ -11,6 +11,7 @@ import { GlassConnectedCard } from "./components/GlassConnectedCard";
 import { GlassPage, SmartGlassGuide } from "./components/GlassPage";
 import { LoginScreen } from "./components/LoginScreen";
 import SplashScreen from "./components/SplashScreen";
+import { AIAssistantPage } from "./components/AIAssistantPage";
 
 // Image assets - exact paths from Figma
 const imgAvatar = "/assets/avatar-bharath.jpg";
@@ -897,6 +898,17 @@ export default function App() {
               >
                 <NotesPage isDark={isDarkMode} />
               </motion.div>
+            ) : activePage === 'ai' ? (
+              <motion.div
+                key="ai-content"
+                className="absolute inset-0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <AIAssistantPage isDark={isDarkMode} onBack={() => setActivePage('home')} userName="Sparky" />
+              </motion.div>
             ) : activePage === 'inspection' && currentInspection ? (
               <motion.div
                 key="inspection-content"
@@ -1149,6 +1161,7 @@ export default function App() {
             <motion.div 
               className="relative flex gap-[10px] items-center justify-center p-[8px] w-[54px] h-[54px] mr-[-10px] cursor-pointer z-10"
               whileTap={{ scale: 0.9 }}
+              onClick={() => setActivePage('ai')}
             >
               {/* AI Icon with theme-aware color */}
               <div className="w-[24px] h-[19px] relative" style={{ filter: `drop-shadow(0 0 4px ${theme.aiAccentLight})` }}>

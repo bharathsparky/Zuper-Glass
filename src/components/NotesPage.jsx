@@ -1097,7 +1097,7 @@ const VoiceCommandsSheet = ({ isOpen, onClose, isDark }) => {
 };
 
 // Note Creation Modal - Voice Recording Mode (App)
-const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
+export const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -1553,7 +1553,7 @@ const VoiceRecordingModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => 
 };
 
 // Note Creation Modal - Type Mode (App)
-const TypeNoteModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
+export const TypeNoteModal = ({ isOpen, onClose, onSave, isDark, activeJob }) => {
   const [noteText, setNoteText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('quick');
   const [selectedSeverity, setSelectedSeverity] = useState('low');

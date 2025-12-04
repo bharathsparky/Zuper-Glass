@@ -7,6 +7,7 @@ import {
   Image, Video, Mic, AlertCircle, Tag, Layers, Plus, Play,
   Eye, Filter, Grid, List, ChevronDown, Star, Bookmark
 } from 'lucide-react';
+import { VoiceRecordingModal, TypeNoteModal } from './NotesPage';
 
 // ============ THEME HELPERS ============
 
@@ -537,6 +538,9 @@ export const InspectionDetailsPage = ({
   const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'notes'
   const [showNoteMenu, setShowNoteMenu] = useState(false);
   const [showQuickNoteMenu, setShowQuickNoteMenu] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showTypeModal, setShowTypeModal] = useState(false);
+  const [inspectionNotes, setInspectionNotes] = useState(sampleNotes);
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
   
@@ -757,7 +761,7 @@ export const InspectionDetailsPage = ({
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           setShowQuickNoteMenu(false);
-                          onAddNote?.('voice');
+                          setShowVoiceModal(true);
                         }}
                       >
                         <div 
@@ -778,7 +782,7 @@ export const InspectionDetailsPage = ({
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           setShowQuickNoteMenu(false);
-                          onAddNote?.('type');
+                          setShowTypeModal(true);
                         }}
                       >
                         <div 
@@ -1019,8 +1023,8 @@ export const InspectionDetailsPage = ({
                             style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)' }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
-                              setShowNoteMenu(false);
-                              onAddNote?.('voice');
+                            setShowNoteMenu(false);
+                            setShowVoiceModal(true);
                             }}
                           >
                             <div 
@@ -1043,8 +1047,8 @@ export const InspectionDetailsPage = ({
                             className="w-full p-[14px] flex items-center gap-[12px]"
                             whileTap={{ scale: 0.98 }}
                             onClick={() => {
-                              setShowNoteMenu(false);
-                              onAddNote?.('type');
+                            setShowNoteMenu(false);
+                            setShowTypeModal(true);
                             }}
                           >
                             <div 
@@ -1093,6 +1097,32 @@ export const InspectionDetailsPage = ({
           <span className="font-['Inter'] font-medium text-[13px] text-white">Open in Zuper App</span>
         </motion.button>
       </div>
+      
+      {/* Voice Recording Modal */}
+      <AnimatePresence>
+        {showVoiceModal && (
+          <VoiceRecordingModal
+            isOpen={showVoiceModal}
+            onClose={() => setShowVoiceModal(false)}
+            onSave={(newNote) => setInspectionNotes(prev => [newNote, ...prev])}
+            isDark={isDark}
+            activeJob={{ id: inspection.id, name: inspection.name }}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Type Note Modal */}
+      <AnimatePresence>
+        {showTypeModal && (
+          <TypeNoteModal
+            isOpen={showTypeModal}
+            onClose={() => setShowTypeModal(false)}
+            onSave={(newNote) => setInspectionNotes(prev => [newNote, ...prev])}
+            isDark={isDark}
+            activeJob={{ id: inspection.id, name: inspection.name }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
