@@ -577,7 +577,7 @@ export const InspectionDetailsPage = ({
           zIndex: 10,
         }}
       >
-        <div className="px-[20px] pt-[24px] pb-[140px]">
+        <div className="px-[20px] pt-[24px] pb-[180px]">
           {/* Title Section */}
           <div className="mb-[20px]">
             <h1 
