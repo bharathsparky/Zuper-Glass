@@ -91,53 +91,184 @@ export const GlassConnectedCard = ({
         `,
       }}
     >
-      {/* Premium gradient overlay */}
+      {/* === HIGH-TECH FUTURISTIC BACKGROUND === */}
+      
+      {/* Tech grid pattern - subtle circuit board effect */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.08]"
         style={{
-          background: `
-            radial-gradient(ellipse 80% 60% at 20% 20%, rgba(133, 88, 242, 0.2) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 50% at 80% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 60%)
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
           `,
+          backgroundSize: '30px 30px',
         }}
       />
 
-      {/* Floating particles */}
+      {/* Aurora/energy flow effect */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        animate={{
+          background: [
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.2) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 50% 0%, rgba(133, 88, 242, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 20% 100%, rgba(6, 182, 212, 0.2) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 80% 0%, rgba(16, 185, 129, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 50% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.25) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.2) 0%, transparent 50%)',
+          ],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Energy pulse rings */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={`ring-${i}`}
+            className="absolute rounded-full border"
+            style={{
+              width: '200px',
+              height: '200px',
+              left: '50%',
+              top: '45%',
+              marginLeft: '-100px',
+              marginTop: '-100px',
+              borderColor: 'rgba(6, 182, 212, 0.15)',
+            }}
+            animate={{
+              scale: [1, 2.5],
+              opacity: [0.4, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              delay: i * 1.3,
+              ease: "easeOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Floating energy particles - Stars/Data points */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full"
             style={{
-              width: `${2 + (i % 3)}px`,
-              height: `${2 + (i % 3)}px`,
-              left: `${5 + (i * 6.5)}%`,
-              top: `${10 + ((i * 23) % 80)}%`,
-              background: i % 2 === 0 
-                ? 'rgba(255, 255, 255, 0.4)'
-                : 'rgba(133, 88, 242, 0.5)',
-              boxShadow: `0 0 ${4 + (i % 3)}px ${i % 2 === 0 ? 'rgba(255, 255, 255, 0.3)' : 'rgba(133, 88, 242, 0.4)'}`,
+              width: `${1.5 + (i % 3)}px`,
+              height: `${1.5 + (i % 3)}px`,
+              left: `${(i * 5) % 100}%`,
+              top: `${(i * 17) % 100}%`,
+              background: i % 3 === 0 
+                ? 'rgba(6, 182, 212, 0.8)'
+                : i % 3 === 1
+                ? 'rgba(133, 88, 242, 0.7)'
+                : 'rgba(255, 255, 255, 0.6)',
+              boxShadow: i % 3 === 0 
+                ? '0 0 6px rgba(6, 182, 212, 0.6)'
+                : i % 3 === 1
+                ? '0 0 6px rgba(133, 88, 242, 0.5)'
+                : '0 0 4px rgba(255, 255, 255, 0.4)',
             }}
             animate={{
-              y: [0, -15 - (i % 10), 0],
-              opacity: [0.3, 0.7, 0.3],
+              y: [0, -20 - (i % 15), 0],
+              x: [0, (i % 2 === 0 ? 8 : -8), 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.3, 1],
             }}
             transition={{
-              duration: 3 + (i % 3),
+              duration: 3 + (i % 4),
               repeat: Infinity,
-              delay: i * 0.2,
+              delay: i * 0.15,
               ease: "easeInOut",
             }}
           />
         ))}
       </div>
 
-      {/* Subtle shine effect */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-[50%] pointer-events-none"
+      {/* Electric energy lines - Subtle lightning streaks */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+        {/* Energy line 1 */}
+        <motion.path
+          d="M 0 50 Q 50 30, 100 60 T 200 40 T 300 70 T 345 50"
+          fill="none"
+          stroke="url(#energyGrad1)"
+          strokeWidth="1"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ 
+            pathLength: [0, 1, 1, 0],
+            opacity: [0, 0.6, 0.6, 0],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            repeatDelay: 4,
+            ease: "easeInOut",
+          }}
+        />
+        {/* Energy line 2 */}
+        <motion.path
+          d="M 345 120 Q 280 100, 220 130 T 120 110 T 50 140 T 0 120"
+          fill="none"
+          stroke="url(#energyGrad2)"
+          strokeWidth="1"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ 
+            pathLength: [0, 1, 1, 0],
+            opacity: [0, 0.5, 0.5, 0],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            repeatDelay: 5,
+            delay: 2,
+            ease: "easeInOut",
+          }}
+        />
+        <defs>
+          <linearGradient id="energyGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(6, 182, 212, 0)" />
+            <stop offset="30%" stopColor="rgba(6, 182, 212, 0.8)" />
+            <stop offset="70%" stopColor="rgba(133, 88, 242, 0.8)" />
+            <stop offset="100%" stopColor="rgba(133, 88, 242, 0)" />
+          </linearGradient>
+          <linearGradient id="energyGrad2" x1="100%" y1="0%" x2="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(133, 88, 242, 0)" />
+            <stop offset="30%" stopColor="rgba(133, 88, 242, 0.6)" />
+            <stop offset="70%" stopColor="rgba(16, 185, 129, 0.6)" />
+            <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Holographic scanline effect */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.03) 50%, transparent 100%)',
+          backgroundSize: '100% 8px',
+        }}
+        animate={{
+          backgroundPosition: ['0 0', '0 100%'],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+
+      {/* Top shine/glare effect */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-[40%] pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
           borderRadius: '20px 20px 0 0',
         }}
       />
