@@ -1,13 +1,20 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { 
   Mic, MicOff, Plus, Search, Clock, MapPin, Cloud, CloudOff, 
   ChevronRight, MoreVertical, Trash2, Edit3, Share2, 
   CheckCircle, AlertCircle, Loader, FileText, Camera, 
   Tag, Filter, X, Check, Volume2, Pause, Play, 
   Battery, Wifi, WifiOff, Home, Clipboard, Wrench,
-  Zap, ThermometerSun, Droplets, Wind, ChevronDown, Archive
+  Zap, ThermometerSun, Droplets, Wind, ChevronDown, Archive,
+  RefreshCw, Download, Send, Eye, EyeOff, Link, Unlink,
+  Layers, Grid3X3, List, SortAsc, SortDesc, Headphones,
+  RotateCcw, Copy, Merge, Split, Flag, AlertTriangle,
+  Radio, Bluetooth, BluetoothOff, Activity, Settings,
+  ChevronLeft, ChevronUp, SkipBack, SkipForward, Square
 } from 'lucide-react';
+
+// ============ CONSTANTS & DATA MODELS ============
 
 // Theme-aware accent colors
 const getAccentColors = (isDark) => ({
@@ -16,12 +23,13 @@ const getAccentColors = (isDark) => ({
   success: '#10b981',
   warning: '#f59e0b',
   danger: '#ef4444',
+  info: '#3b82f6',
   bgSubtle: isDark ? 'rgba(133, 88, 242, 0.08)' : 'rgba(2, 132, 199, 0.06)',
   bgLight: isDark ? 'rgba(133, 88, 242, 0.12)' : 'rgba(2, 132, 199, 0.08)',
   bgMedium: isDark ? 'rgba(133, 88, 242, 0.15)' : 'rgba(2, 132, 199, 0.1)',
 });
 
-// Text colors for accessibility (WCAG AA compliant - high contrast for outdoor use)
+// Text colors for accessibility (WCAG AA compliant)
 const getTextColors = (isDark) => ({
   primary: isDark ? '#f8fafc' : '#0f172a',
   secondary: isDark ? '#e2e8f0' : '#1e293b',
@@ -37,7 +45,8 @@ const noteTemplates = [
     icon: Zap, 
     color: '#8558F2',
     fields: ['content'],
-    description: 'Fast capture, no fields'
+    voiceCommand: 'quick note',
+    description: 'Fast capture'
   },
   { 
     id: 'damage', 
@@ -45,7 +54,8 @@ const noteTemplates = [
     icon: AlertCircle, 
     color: '#ef4444',
     fields: ['severity', 'location', 'description', 'recommendation'],
-    description: 'Document roof damage'
+    voiceCommand: 'damage report',
+    description: 'Document damage'
   },
   { 
     id: 'measurement', 
@@ -53,6 +63,7 @@ const noteTemplates = [
     icon: Clipboard, 
     color: '#10b981',
     fields: ['area', 'dimensions', 'notes'],
+    voiceCommand: 'measurement',
     description: 'Record dimensions'
   },
   { 
@@ -61,115 +72,381 @@ const noteTemplates = [
     icon: Wrench, 
     color: '#f59e0b',
     fields: ['material_type', 'condition', 'quantity', 'notes'],
-    description: 'Material observations'
+    voiceCommand: 'material note',
+    description: 'Material info'
   },
   { 
     id: 'safety', 
     name: 'Safety Alert', 
-    icon: AlertCircle, 
+    icon: AlertTriangle, 
     color: '#dc2626',
     fields: ['hazard_type', 'severity', 'action_required'],
-    description: 'Flag safety concerns',
+    voiceCommand: 'safety issue',
+    description: 'Flag safety',
     priority: 'high'
   },
 ];
 
-// Sample notes data
-const sampleNotes = [
+// Roofing industry vocabulary for transcription
+const industryVocabulary = [
+  'shingles', 'flashing', 'soffit', 'fascia', 'underlayment', 'ridge vent',
+  'valley', 'eave', 'gable', 'hip', 'cricket', 'drip edge', 'ice dam',
+  'decking', 'felt', 'starter strip', 'step flashing', 'counter flashing',
+  'boot', 'pipe collar', 'skylight', 'dormer', 'rake', 'gutters', 'downspout',
+  'granule loss', 'curling', 'buckling', 'blistering', 'algae', 'moss',
+  'condenser', 'evaporator', 'compressor', 'refrigerant', 'ductwork', 'HVAC'
+];
+
+// Voice commands reference
+const voiceCommands = {
+  recording: [
+    { command: '"Hey Zuper, record note"', action: 'Start recording', category: 'capture' },
+    { command: '"Hey Zuper, take note"', action: 'Start recording', category: 'capture' },
+    { command: '"Hey Zuper, new note"', action: 'Start recording', category: 'capture' },
+    { command: '"Hey Zuper, damage report"', action: 'Start damage template', category: 'capture' },
+    { command: '"Hey Zuper, safety issue"', action: 'Flag safety concern', category: 'capture' },
+  ],
+  control: [
+    { command: '"Save" / "Done"', action: 'End and save recording', category: 'control' },
+    { command: '"Cancel" / "Discard"', action: 'Delete current recording', category: 'control' },
+    { command: '"Attach photo"', action: 'Link last photo', category: 'control' },
+    { command: '"Mark urgent"', action: 'Flag as high priority', category: 'control' },
+  ],
+  playback: [
+    { command: '"Play last note"', action: 'Replay recent note', category: 'playback' },
+    { command: '"Battery status"', action: 'Check glass battery', category: 'system' },
+  ],
+};
+
+// Sample notes data (simulating captured during fieldwork)
+const generateSampleNotes = () => [
   {
-    id: 1,
-    template: 'damage',
-    title: 'Shingle damage - North slope',
-    content: 'Found 3 cracked shingles near the ridge. Wind damage suspected. Flashing around chimney needs inspection.',
-    severity: 'medium',
-    timestamp: new Date().toISOString(),
-    location: 'North slope, near ridge',
-    inspection: 'Roof Inspection #1247',
-    syncStatus: 'synced',
-    hasPhotos: true,
-    photoCount: 2,
-    tags: ['shingles', 'wind damage', 'flashing'],
-    weather: { temp: 72, condition: 'sunny' },
+    id: 'note-001',
+    job_id: 'job-1247',
+    inspection_id: 'insp-5821',
+    created_timestamp: new Date().toISOString(),
+    recording_duration: 45,
+    audio_file_path: '/audio/note-001.webm',
+    transcription_text: 'Found three cracked shingles on the north-facing slope near the ridge. The damage appears to be from wind uplift during last month\'s storm. Flashing around the chimney is also compromised with visible gaps. Recommend full replacement of damaged shingles and resealing of chimney flashing.',
+    transcription_confidence: 94,
+    edited_text: null,
+    metadata: {
+      gps_coordinates: { lat: 34.0522, lng: -118.2437 },
+      weather: { temp: 72, condition: 'sunny', humidity: 45 },
+      device_battery: 85,
+      glass_model: 'Zuper Glass Pro',
+    },
+    categorization: {
+      type: 'damage',
+      severity: 'medium',
+      roof_section: 'North slope - Ridge area',
+      tags: ['shingles', 'wind damage', 'flashing', 'chimney'],
+    },
+    attachments: {
+      photos: ['photo-101', 'photo-102'],
+      videos: [],
+    },
+    sync_status: 'synced',
+    reviewed: true,
+    included_in_report: true,
   },
   {
-    id: 2,
-    template: 'quick',
-    title: 'Voice note - Soffit condition',
-    content: 'Soffit vents are 80% blocked with debris. Recommend cleaning before winter. Some paint peeling on fascia board.',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    location: 'East side, soffit area',
-    inspection: 'Roof Inspection #1247',
-    syncStatus: 'pending',
-    hasPhotos: false,
-    tags: ['soffit', 'ventilation'],
-    isVoiceNote: true,
+    id: 'note-002',
+    job_id: 'job-1247',
+    inspection_id: 'insp-5821',
+    created_timestamp: new Date(Date.now() - 1200000).toISOString(),
+    recording_duration: 28,
+    audio_file_path: '/audio/note-002.webm',
+    transcription_text: 'Soffit vents on the east side are approximately eighty percent blocked with debris and old insulation. This is causing inadequate attic ventilation. Some paint peeling on the fascia board below the blocked vents, likely from moisture buildup.',
+    transcription_confidence: 89,
+    edited_text: 'Soffit vents on the east side are approximately 80% blocked with debris and old insulation. This is causing inadequate attic ventilation. Some paint peeling on the fascia board below the blocked vents, likely from moisture buildup.',
+    metadata: {
+      gps_coordinates: { lat: 34.0525, lng: -118.2440 },
+      weather: { temp: 73, condition: 'sunny', humidity: 43 },
+      device_battery: 82,
+      glass_model: 'Zuper Glass Pro',
+    },
+    categorization: {
+      type: 'damage',
+      severity: 'low',
+      roof_section: 'East side - Soffit',
+      tags: ['soffit', 'ventilation', 'fascia', 'moisture'],
+    },
+    attachments: {
+      photos: ['photo-103'],
+      videos: [],
+    },
+    sync_status: 'synced',
+    reviewed: true,
+    included_in_report: false,
   },
   {
-    id: 3,
-    template: 'safety',
-    title: '⚠️ SAFETY: Unstable decking',
-    content: 'Section of roof deck feels soft near valley. Do not walk on marked area. Possible water damage underneath.',
-    severity: 'high',
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-    location: 'Main valley intersection',
-    inspection: 'Roof Inspection #1247',
-    syncStatus: 'synced',
-    hasPhotos: true,
-    photoCount: 3,
-    tags: ['safety', 'deck', 'water damage'],
-    priority: 'high',
+    id: 'note-003',
+    job_id: 'job-1247',
+    inspection_id: 'insp-5821',
+    created_timestamp: new Date(Date.now() - 2400000).toISOString(),
+    recording_duration: 52,
+    audio_file_path: '/audio/note-003.webm',
+    transcription_text: 'SAFETY CONCERN: Section of roof decking feels soft and spongy near the main valley intersection. Do NOT walk on this marked area. This indicates possible water damage or rot underneath the shingles. Recommend immediate structural assessment before any repair work.',
+    transcription_confidence: 96,
+    edited_text: null,
+    metadata: {
+      gps_coordinates: { lat: 34.0520, lng: -118.2435 },
+      weather: { temp: 74, condition: 'sunny', humidity: 42 },
+      device_battery: 78,
+      glass_model: 'Zuper Glass Pro',
+    },
+    categorization: {
+      type: 'safety',
+      severity: 'high',
+      roof_section: 'Main valley intersection',
+      tags: ['safety', 'decking', 'water damage', 'structural'],
+    },
+    attachments: {
+      photos: ['photo-104', 'photo-105', 'photo-106'],
+      videos: ['video-101'],
+    },
+    sync_status: 'synced',
+    reviewed: true,
+    included_in_report: true,
   },
   {
-    id: 4,
-    template: 'measurement',
-    title: 'Roof area measurements',
-    content: 'Total roof area approximately 2,400 sq ft. Main section: 1,800 sq ft. Garage: 600 sq ft.',
-    timestamp: new Date(Date.now() - 10800000).toISOString(),
-    location: 'Full property',
-    inspection: 'Roof Inspection #1247',
-    syncStatus: 'synced',
-    hasPhotos: false,
-    tags: ['measurements', 'area'],
+    id: 'note-004',
+    job_id: 'job-1247',
+    inspection_id: 'insp-5821',
+    created_timestamp: new Date(Date.now() - 3600000).toISOString(),
+    recording_duration: 35,
+    audio_file_path: '/audio/note-004.webm',
+    transcription_text: 'Total roof area measurements. Main house section approximately eighteen hundred square feet. Attached garage section approximately six hundred square feet. Total estimated area twenty four hundred square feet.',
+    transcription_confidence: 91,
+    edited_text: 'Total roof area measurements:\n• Main house section: ~1,800 sq ft\n• Garage section: ~600 sq ft\n• Total: ~2,400 sq ft',
+    metadata: {
+      gps_coordinates: { lat: 34.0522, lng: -118.2437 },
+      weather: { temp: 71, condition: 'sunny', humidity: 46 },
+      device_battery: 75,
+      glass_model: 'Zuper Glass Pro',
+    },
+    categorization: {
+      type: 'measurement',
+      severity: 'low',
+      roof_section: 'Full property',
+      tags: ['measurements', 'area', 'square footage'],
+    },
+    attachments: {
+      photos: [],
+      videos: [],
+    },
+    sync_status: 'synced',
+    reviewed: false,
+    included_in_report: false,
+  },
+  {
+    id: 'note-005',
+    job_id: 'job-1247',
+    inspection_id: 'insp-5821',
+    created_timestamp: new Date(Date.now() - 300000).toISOString(),
+    recording_duration: 22,
+    audio_file_path: '/audio/note-005.webm',
+    transcription_text: 'Pipe boot around the plumbing vent on the south slope is cracked and needs replacement. Standard three inch boot should work. Adding this to the materials list.',
+    transcription_confidence: 87,
+    edited_text: null,
+    metadata: {
+      gps_coordinates: { lat: 34.0523, lng: -118.2438 },
+      weather: { temp: 72, condition: 'sunny', humidity: 44 },
+      device_battery: 88,
+      glass_model: 'Zuper Glass Pro',
+    },
+    categorization: {
+      type: 'material',
+      severity: 'medium',
+      roof_section: 'South slope - Vent area',
+      tags: ['pipe boot', 'plumbing vent', 'replacement'],
+    },
+    attachments: {
+      photos: ['photo-107'],
+      videos: [],
+    },
+    sync_status: 'pending',
+    reviewed: false,
+    included_in_report: false,
   },
 ];
 
-// Voice Command Reference
-const voiceCommands = [
-  { command: '"Hey Zuper, new note"', action: 'Start new quick note' },
-  { command: '"Hey Zuper, damage report"', action: 'Start damage template' },
-  { command: '"Hey Zuper, safety alert"', action: 'Flag safety issue' },
-  { command: '"Hey Zuper, take photo"', action: 'Capture and attach photo' },
-  { command: '"Hey Zuper, save note"', action: 'Save current note' },
-  { command: '"Hey Zuper, read back"', action: 'Read last note aloud' },
-];
+// ============ SUB-COMPONENTS ============
 
-// ============ COMPONENTS ============
+// Glass HUD Simulation Component
+const GlassHUDPreview = ({ 
+  isRecording, 
+  recordingDuration, 
+  isConnected, 
+  batteryLevel,
+  jobName,
+  lastAction,
+  isDark 
+}) => {
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
-// Sync Status Badge - High contrast for outdoor visibility
-const SyncStatusBadge = ({ status, isDark }) => {
+  return (
+    <motion.div
+      className="relative w-full h-[180px] rounded-[16px] overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
+        border: '2px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.3)',
+      }}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      {/* Glass lens effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+        }}
+      />
+      
+      {/* HUD Content */}
+      <div className="relative z-10 p-[16px] h-full flex flex-col justify-between">
+        {/* Top Bar - Status */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[8px]">
+            {/* Connection Status */}
+            <div className="flex items-center gap-[4px]">
+              {isConnected ? (
+                <Bluetooth className="w-[12px] h-[12px] text-emerald-400" />
+              ) : (
+                <BluetoothOff className="w-[12px] h-[12px] text-red-400" />
+              )}
+              <span className="font-['SF_Mono',monospace] text-[9px] text-white/60">
+                {isConnected ? 'LINKED' : 'DISCONNECTED'}
+              </span>
+            </div>
+          </div>
+          
+          {/* Battery */}
+          <div className="flex items-center gap-[4px]">
+            <Battery className="w-[12px] h-[12px] text-white/60" />
+            <span className="font-['SF_Mono',monospace] text-[9px] text-white/60">
+              {batteryLevel}%
+            </span>
+          </div>
+        </div>
+        
+        {/* Center - Main Display */}
+        <div className="flex-1 flex items-center justify-center">
+          {isRecording ? (
+            <div className="flex flex-col items-center">
+              {/* Recording indicator */}
+              <motion.div 
+                className="flex items-center gap-[8px] mb-[8px]"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <div className="w-[10px] h-[10px] rounded-full bg-red-500" />
+                <span className="font-['SF_Mono',monospace] text-[14px] text-red-400 font-bold">
+                  REC
+                </span>
+              </motion.div>
+              
+              {/* Timer */}
+              <span className="font-['SF_Mono',monospace] text-[28px] text-white font-bold tracking-wider">
+                {formatTime(recordingDuration)}
+              </span>
+              
+              {/* Waveform visualization */}
+              <div className="flex items-center gap-[2px] mt-[8px]">
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-[3px] bg-red-400 rounded-full"
+                    animate={{ 
+                      height: [4, 8 + Math.random() * 12, 4],
+                    }}
+                    transition={{ 
+                      duration: 0.3 + Math.random() * 0.2,
+                      repeat: Infinity,
+                      delay: i * 0.05,
+                    }}
+                  />
+                ))}
+              </div>
+              
+              <span className="font-['SF_Mono',monospace] text-[9px] text-white/40 mt-[8px]">
+                Say "SAVE" or "CANCEL"
+              </span>
+            </div>
+          ) : lastAction ? (
+            <motion.div 
+              className="flex flex-col items-center"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              <CheckCircle className="w-[32px] h-[32px] text-emerald-400 mb-[6px]" />
+              <span className="font-['SF_Mono',monospace] text-[12px] text-emerald-400 font-semibold">
+                {lastAction}
+              </span>
+            </motion.div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <Mic className="w-[24px] h-[24px] text-white/30 mb-[6px]" />
+              <span className="font-['SF_Mono',monospace] text-[10px] text-white/40">
+                Say "Hey Zuper, record note"
+              </span>
+            </div>
+          )}
+        </div>
+        
+        {/* Bottom Bar - Job Info */}
+        <div className="flex items-center justify-between">
+          <span className="font-['SF_Mono',monospace] text-[9px] text-white/50 truncate max-w-[200px]">
+            {jobName || 'No active job'}
+          </span>
+          <span className="font-['SF_Mono',monospace] text-[9px] text-white/40">
+            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+      </div>
+      
+      {/* Corner accents */}
+      <div className="absolute top-[8px] left-[8px] w-[20px] h-[20px] border-l-2 border-t-2 border-white/20 rounded-tl-[4px]" />
+      <div className="absolute top-[8px] right-[8px] w-[20px] h-[20px] border-r-2 border-t-2 border-white/20 rounded-tr-[4px]" />
+      <div className="absolute bottom-[8px] left-[8px] w-[20px] h-[20px] border-l-2 border-b-2 border-white/20 rounded-bl-[4px]" />
+      <div className="absolute bottom-[8px] right-[8px] w-[20px] h-[20px] border-r-2 border-b-2 border-white/20 rounded-br-[4px]" />
+    </motion.div>
+  );
+};
+
+// Sync Status Badge
+const SyncStatusBadge = ({ status, isDark, size = 'normal' }) => {
   const configs = {
-    synced: { icon: CheckCircle, color: '#10b981', label: 'Saved', bg: 'rgba(16, 185, 129, 0.15)' },
+    synced: { icon: CheckCircle, color: '#10b981', label: 'Synced', bg: 'rgba(16, 185, 129, 0.15)' },
     pending: { icon: Cloud, color: '#f59e0b', label: 'Pending', bg: 'rgba(245, 158, 11, 0.15)' },
     syncing: { icon: Loader, color: '#3b82f6', label: 'Syncing', bg: 'rgba(59, 130, 246, 0.15)' },
-    offline: { icon: CloudOff, color: '#94a3b8', label: 'Offline', bg: 'rgba(148, 163, 184, 0.15)' },
+    local: { icon: CloudOff, color: '#94a3b8', label: 'Local', bg: 'rgba(148, 163, 184, 0.15)' },
     error: { icon: AlertCircle, color: '#ef4444', label: 'Error', bg: 'rgba(239, 68, 68, 0.15)' },
   };
   
-  const config = configs[status] || configs.offline;
+  const config = configs[status] || configs.local;
   const Icon = config.icon;
+  const isSmall = size === 'small';
   
   return (
     <div 
-      className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+      className={`flex items-center gap-[4px] rounded-[6px] ${isSmall ? 'px-[6px] py-[2px]' : 'px-[8px] py-[4px]'}`}
       style={{ background: config.bg }}
     >
       <Icon 
-        className={`w-[12px] h-[12px] ${status === 'syncing' ? 'animate-spin' : ''}`} 
+        className={`${isSmall ? 'w-[10px] h-[10px]' : 'w-[12px] h-[12px]'} ${status === 'syncing' ? 'animate-spin' : ''}`} 
         style={{ color: config.color }} 
         strokeWidth={2.5}
       />
       <span 
-        className="font-['Inter'] font-semibold text-[10px] uppercase tracking-wide"
+        className={`font-['Inter'] font-semibold uppercase tracking-wide ${isSmall ? 'text-[8px]' : 'text-[10px]'}`}
         style={{ color: config.color }}
       >
         {config.label}
@@ -178,93 +455,180 @@ const SyncStatusBadge = ({ status, isDark }) => {
   );
 };
 
-// Offline Banner - Critical visibility
-const OfflineBanner = ({ isDark }) => (
-  <motion.div
-    className="w-full px-[16px] py-[10px] flex items-center justify-center gap-[8px]"
-    style={{
-      background: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)',
-      borderBottom: '1px solid rgba(245, 158, 11, 0.3)',
-    }}
-    initial={{ y: -40, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-  >
-    <WifiOff className="w-[16px] h-[16px] text-amber-500" strokeWidth={2.5} />
-    <span className="font-['Inter'] font-semibold text-[12px] text-amber-600">
-      Offline Mode - Notes will sync when connected
-    </span>
-  </motion.div>
-);
-
-// Voice Recording Button - Large touch target (minimum 48x48px as required)
-const VoiceRecordButton = ({ isRecording, onToggle, isDark, disabled }) => {
+// Connection Status Banner
+const ConnectionBanner = ({ isConnected, glassInfo, isDark, onReconnect }) => {
   const accentColors = getAccentColors(isDark);
   
   return (
-    <motion.button
-      className="relative flex items-center justify-center rounded-full"
+    <motion.div
+      className="w-full rounded-[12px] p-[12px] flex items-center justify-between"
       style={{
-        width: '64px',
-        height: '64px',
-        background: isRecording 
-          ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-          : `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
-        boxShadow: isRecording
-          ? '0 8px 24px rgba(239, 68, 68, 0.4), 0 0 0 4px rgba(239, 68, 68, 0.2)'
-          : `0 8px 24px ${isDark ? 'rgba(133, 88, 242, 0.4)' : 'rgba(2, 132, 199, 0.3)'}`,
+        background: isConnected 
+          ? isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)'
+          : isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.08)',
+        border: isConnected 
+          ? '1px solid rgba(16, 185, 129, 0.2)'
+          : '1px solid rgba(239, 68, 68, 0.2)',
       }}
-      whileTap={{ scale: 0.92 }}
-      onClick={onToggle}
-      disabled={disabled}
-      aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
     >
-      {/* Pulse animation when recording */}
-      {isRecording && (
-        <>
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ background: 'rgba(239, 68, 68, 0.3)' }}
-            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ background: 'rgba(239, 68, 68, 0.2)' }}
-            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
-          />
-        </>
-      )}
+      <div className="flex items-center gap-[10px]">
+        {isConnected ? (
+          <Bluetooth className="w-[18px] h-[18px] text-emerald-500" strokeWidth={2} />
+        ) : (
+          <BluetoothOff className="w-[18px] h-[18px] text-red-500" strokeWidth={2} />
+        )}
+        <div>
+          <p className={`font-['Inter'] font-semibold text-[12px] ${isConnected ? 'text-emerald-600' : 'text-red-600'}`}>
+            {isConnected ? 'Glass Connected' : 'Glass Disconnected'}
+          </p>
+          {isConnected && glassInfo && (
+            <p className="font-['Inter'] text-[10px] text-emerald-500/70">
+              {glassInfo.model} • {glassInfo.battery}% battery
+            </p>
+          )}
+        </div>
+      </div>
       
-      {isRecording ? (
-        <div className="w-[20px] h-[20px] rounded-[4px] bg-white" />
-      ) : (
-        <Mic className="w-[28px] h-[28px] text-white" strokeWidth={2} />
+      {!isConnected && (
+        <motion.button
+          className="px-[12px] py-[6px] rounded-[8px] bg-red-500/20"
+          whileTap={{ scale: 0.95 }}
+          onClick={onReconnect}
+        >
+          <span className="font-['Inter'] font-semibold text-[11px] text-red-500">
+            Reconnect
+          </span>
+        </motion.button>
       )}
-    </motion.button>
+    </motion.div>
   );
 };
 
-// Note Card - High contrast, large touch target
-const NoteCard = ({ note, isDark, onPress, onDelete, onEdit }) => {
+// Audio Player Component
+const AudioPlayer = ({ audioPath, duration, isDark }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
-  const [showActions, setShowActions] = useState(false);
   
-  const template = noteTemplates.find(t => t.id === note.template) || noteTemplates[0];
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  
+  // Simulate playback
+  useEffect(() => {
+    let interval;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setCurrentTime(prev => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            return 0;
+          }
+          return prev + (0.1 * playbackRate);
+        });
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, duration, playbackRate]);
+  
+  return (
+    <div 
+      className="rounded-[12px] p-[12px]"
+      style={{
+        background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+        border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+      }}
+    >
+      <div className="flex items-center gap-[12px]">
+        {/* Play/Pause Button */}
+        <motion.button
+          className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+          style={{ background: accentColors.primary }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsPlaying(!isPlaying)}
+        >
+          {isPlaying ? (
+            <Pause className="w-[18px] h-[18px] text-white" fill="white" />
+          ) : (
+            <Play className="w-[18px] h-[18px] text-white ml-[2px]" fill="white" />
+          )}
+        </motion.button>
+        
+        {/* Progress Bar */}
+        <div className="flex-1">
+          <div 
+            className="h-[4px] rounded-full overflow-hidden cursor-pointer"
+            style={{ background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const percent = x / rect.width;
+              setCurrentTime(percent * duration);
+            }}
+          >
+            <motion.div 
+              className="h-full rounded-full"
+              style={{ 
+                background: accentColors.primary,
+                width: `${progress}%`,
+              }}
+            />
+          </div>
+          
+          {/* Time Display */}
+          <div className="flex items-center justify-between mt-[6px]">
+            <span className="font-['SF_Mono',monospace] text-[10px]" style={{ color: textColors.muted }}>
+              {formatTime(currentTime)}
+            </span>
+            <span className="font-['SF_Mono',monospace] text-[10px]" style={{ color: textColors.muted }}>
+              {formatTime(duration)}
+            </span>
+          </div>
+        </div>
+        
+        {/* Playback Speed */}
+        <motion.button
+          className="px-[8px] py-[4px] rounded-[6px]"
+          style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setPlaybackRate(prev => prev === 2 ? 0.5 : prev + 0.5)}
+        >
+          <span className="font-['SF_Mono',monospace] text-[10px] font-semibold" style={{ color: textColors.description }}>
+            {playbackRate}x
+          </span>
+        </motion.button>
+      </div>
+    </div>
+  );
+};
+
+// Note Card - Full review version
+const NoteCard = ({ note, isDark, isSelected, onSelect, onToggleSelect, onEdit, onDelete, isExpanded, onToggleExpand }) => {
+  const textColors = getTextColors(isDark);
+  const accentColors = getAccentColors(isDark);
+  
+  const template = noteTemplates.find(t => t.id === note.categorization.type) || noteTemplates[0];
   const TemplateIcon = template.icon;
-  
-  const isPriority = note.priority === 'high';
+  const isPriority = note.categorization.severity === 'high';
+  const displayText = note.edited_text || note.transcription_text;
   
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now - date;
-    
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+  
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -272,23 +636,22 @@ const NoteCard = ({ note, isDark, onPress, onDelete, onEdit }) => {
       className="relative w-full rounded-[16px] overflow-hidden"
       style={{
         background: isDark 
-          ? isPriority ? 'rgba(239, 68, 68, 0.1)' : 'rgba(30, 41, 59, 0.8)'
-          : isPriority ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255, 255, 255, 0.95)',
-        border: isPriority 
-          ? '2px solid rgba(239, 68, 68, 0.4)'
-          : isDark 
-            ? '1px solid rgba(255, 255, 255, 0.08)'
-            : '1px solid rgba(0, 0, 0, 0.06)',
+          ? isPriority ? 'rgba(239, 68, 68, 0.08)' : 'rgba(30, 41, 59, 0.8)'
+          : isPriority ? 'rgba(239, 68, 68, 0.04)' : 'rgba(255, 255, 255, 0.95)',
+        border: isSelected
+          ? `2px solid ${accentColors.primary}`
+          : isPriority 
+            ? '2px solid rgba(239, 68, 68, 0.3)'
+            : isDark 
+              ? '1px solid rgba(255, 255, 255, 0.08)'
+              : '1px solid rgba(0, 0, 0, 0.06)',
         boxShadow: isDark 
           ? '0 4px 16px rgba(0, 0, 0, 0.2)'
           : '0 4px 16px rgba(0, 0, 0, 0.06)',
       }}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onPress}
+      layout
     >
-      {/* Priority indicator stripe */}
+      {/* Priority/Severity stripe */}
       {isPriority && (
         <div 
           className="absolute left-0 top-0 bottom-0 w-[4px]"
@@ -296,599 +659,403 @@ const NoteCard = ({ note, isDark, onPress, onDelete, onEdit }) => {
         />
       )}
       
-      <div className="p-[16px]">
+      <div className="p-[14px]">
         {/* Header Row */}
-        <div className="flex items-start justify-between gap-[12px] mb-[10px]">
+        <div className="flex items-start justify-between gap-[10px] mb-[10px]">
           <div className="flex items-center gap-[10px] flex-1 min-w-0">
-            {/* Template Icon - Large for visibility */}
+            {/* Selection checkbox */}
+            <motion.button
+              className="w-[24px] h-[24px] rounded-[6px] flex items-center justify-center shrink-0"
+              style={{
+                background: isSelected ? accentColors.primary : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                border: isSelected ? 'none' : isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+              }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSelect();
+              }}
+            >
+              {isSelected && <Check className="w-[14px] h-[14px] text-white" strokeWidth={3} />}
+            </motion.button>
+            
+            {/* Template Icon */}
             <div 
-              className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center shrink-0"
+              className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center shrink-0"
               style={{ 
-                background: `${template.color}20`,
-                border: `1px solid ${template.color}40`,
+                background: `${template.color}15`,
+                border: `1px solid ${template.color}30`,
               }}
             >
               <TemplateIcon 
-                className="w-[20px] h-[20px]" 
+                className="w-[18px] h-[18px]" 
                 style={{ color: template.color }} 
                 strokeWidth={2}
               />
             </div>
             
+            {/* Title & Meta */}
             <div className="flex-1 min-w-0">
-              <h3 
-                className="font-['Inter'] font-semibold text-[14px] leading-tight truncate"
-                style={{ color: textColors.primary }}
-              >
-                {note.title}
-              </h3>
+              <div className="flex items-center gap-[6px]">
+                <span 
+                  className="font-['Inter'] font-semibold text-[13px] truncate"
+                  style={{ color: textColors.primary }}
+                >
+                  {template.name}
+                </span>
+                {!note.reviewed && (
+                  <div className="w-[6px] h-[6px] rounded-full bg-blue-500 shrink-0" />
+                )}
+              </div>
               <p 
-                className="font-['Inter'] text-[11px] mt-[2px]"
+                className="font-['Inter'] text-[10px]"
                 style={{ color: textColors.muted }}
               >
-                {template.name} • {formatTime(note.timestamp)}
+                {formatDate(note.created_timestamp)} at {formatTime(note.created_timestamp)} • {note.recording_duration}s
               </p>
             </div>
           </div>
           
-          {/* Sync Status + Actions */}
-          <div className="flex items-center gap-[8px] shrink-0">
-            <SyncStatusBadge status={note.syncStatus} isDark={isDark} />
-            <motion.button
-              className="w-[36px] h-[36px] rounded-[8px] flex items-center justify-center"
-              style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-              }}
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowActions(!showActions);
-              }}
-            >
-              <MoreVertical className="w-[18px] h-[18px]" style={{ color: textColors.muted }} />
-            </motion.button>
+          {/* Status badges */}
+          <div className="flex items-center gap-[6px] shrink-0">
+            <SyncStatusBadge status={note.sync_status} isDark={isDark} size="small" />
+            {note.included_in_report && (
+              <div 
+                className="w-[20px] h-[20px] rounded-[4px] flex items-center justify-center"
+                style={{ background: 'rgba(16, 185, 129, 0.15)' }}
+              >
+                <FileText className="w-[10px] h-[10px] text-emerald-500" />
+              </div>
+            )}
           </div>
         </div>
         
-        {/* Content Preview */}
-        <p 
-          className="font-['Inter'] text-[13px] leading-[1.5] mb-[12px] line-clamp-2"
-          style={{ color: textColors.description }}
+        {/* Transcription Preview/Full */}
+        <div 
+          className="rounded-[10px] p-[12px] mb-[10px]"
+          style={{
+            background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
+          }}
         >
-          {note.content}
-        </p>
-        
-        {/* Footer Row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-[12px]">
-            {/* Location */}
-            {note.location && (
-              <div className="flex items-center gap-[4px]">
-                <MapPin className="w-[12px] h-[12px]" style={{ color: textColors.muted }} />
-                <span 
-                  className="font-['Inter'] text-[10px] truncate max-w-[100px]"
-                  style={{ color: textColors.muted }}
-                >
-                  {note.location.split(',')[0]}
-                </span>
-              </div>
-            )}
-            
-            {/* Voice note indicator */}
-            {note.isVoiceNote && (
-              <div className="flex items-center gap-[4px]">
-                <Mic className="w-[12px] h-[12px]" style={{ color: accentColors.primary }} />
-                <span 
-                  className="font-['Inter'] text-[10px]"
-                  style={{ color: accentColors.primary }}
-                >
-                  Voice
-                </span>
-              </div>
-            )}
-            
-            {/* Photo count */}
-            {note.hasPhotos && (
-              <div className="flex items-center gap-[4px]">
-                <Camera className="w-[12px] h-[12px]" style={{ color: textColors.muted }} />
-                <span 
-                  className="font-['Inter'] text-[10px]"
-                  style={{ color: textColors.muted }}
-                >
-                  {note.photoCount}
-                </span>
-              </div>
-            )}
-          </div>
+          {/* Confidence indicator */}
+          {note.transcription_confidence < 90 && (
+            <div className="flex items-center gap-[4px] mb-[6px]">
+              <AlertCircle className="w-[10px] h-[10px] text-amber-500" />
+              <span className="font-['Inter'] text-[9px] text-amber-500">
+                {note.transcription_confidence}% confidence - Review recommended
+              </span>
+            </div>
+          )}
           
-          {/* Tags */}
-          {note.tags && note.tags.length > 0 && (
-            <div className="flex items-center gap-[4px]">
-              {note.tags.slice(0, 2).map((tag, idx) => (
-                <span 
-                  key={idx}
-                  className="px-[6px] py-[2px] rounded-[4px] font-['Inter'] text-[9px]"
-                  style={{
-                    background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                    color: textColors.muted,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-              {note.tags.length > 2 && (
-                <span 
-                  className="font-['Inter'] text-[9px]"
-                  style={{ color: textColors.muted }}
-                >
-                  +{note.tags.length - 2}
-                </span>
-              )}
+          <p 
+            className={`font-['Inter'] text-[13px] leading-[1.6] ${isExpanded ? '' : 'line-clamp-3'}`}
+            style={{ color: textColors.description, whiteSpace: 'pre-wrap' }}
+          >
+            {displayText}
+          </p>
+          
+          {displayText.length > 150 && (
+            <button 
+              className="mt-[6px] font-['Inter'] font-medium text-[11px]"
+              style={{ color: accentColors.primary }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand();
+              }}
+            >
+              {isExpanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
+          
+          {note.edited_text && (
+            <div className="flex items-center gap-[4px] mt-[6px]">
+              <Edit3 className="w-[10px] h-[10px]" style={{ color: textColors.muted }} />
+              <span className="font-['Inter'] text-[9px]" style={{ color: textColors.muted }}>
+                Edited
+              </span>
             </div>
           )}
         </div>
-      </div>
-      
-      {/* Quick Actions Dropdown */}
-      <AnimatePresence>
-        {showActions && (
-          <motion.div
-            className="absolute right-[16px] top-[60px] z-20 rounded-[12px] overflow-hidden"
+        
+        {/* Audio Player */}
+        <AudioPlayer 
+          audioPath={note.audio_file_path} 
+          duration={note.recording_duration} 
+          isDark={isDark} 
+        />
+        
+        {/* Metadata Row */}
+        <div className="flex items-center flex-wrap gap-[8px] mt-[10px]">
+          {/* Location */}
+          {note.categorization.roof_section && (
+            <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
+            >
+              <MapPin className="w-[10px] h-[10px]" style={{ color: textColors.muted }} />
+              <span className="font-['Inter'] text-[10px]" style={{ color: textColors.description }}>
+                {note.categorization.roof_section}
+              </span>
+            </div>
+          )}
+          
+          {/* Photos */}
+          {note.attachments.photos.length > 0 && (
+            <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
+            >
+              <Camera className="w-[10px] h-[10px]" style={{ color: textColors.muted }} />
+              <span className="font-['Inter'] text-[10px]" style={{ color: textColors.description }}>
+                {note.attachments.photos.length} photo{note.attachments.photos.length > 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+          
+          {/* Tags */}
+          {note.categorization.tags.slice(0, 3).map((tag, idx) => (
+            <span 
+              key={idx}
+              className="px-[6px] py-[2px] rounded-[4px] font-['Inter'] text-[9px]"
+              style={{
+                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                color: textColors.muted,
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+          {note.categorization.tags.length > 3 && (
+            <span className="font-['Inter'] text-[9px]" style={{ color: textColors.muted }}>
+              +{note.categorization.tags.length - 3}
+            </span>
+          )}
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="flex items-center gap-[8px] mt-[12px] pt-[12px]" style={{
+          borderTop: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+        }}>
+          <motion.button
+            className="flex-1 py-[10px] rounded-[8px] flex items-center justify-center gap-[6px]"
             style={{
-              background: isDark ? '#1e293b' : '#ffffff',
-              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
             }}
-            initial={{ opacity: 0, scale: 0.9, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -10 }}
-            onClick={(e) => e.stopPropagation()}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
           >
-            {[
-              { icon: Edit3, label: 'Edit', action: onEdit },
-              { icon: Share2, label: 'Share', action: () => {} },
-              { icon: Archive, label: 'Archive', action: () => {} },
-              { icon: Trash2, label: 'Delete', action: onDelete, danger: true },
-            ].map((item, idx) => (
-              <motion.button
-                key={idx}
-                className="w-full px-[16px] py-[12px] flex items-center gap-[10px]"
-                style={{
-                  borderBottom: idx < 3 
-                    ? isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)'
-                    : 'none',
-                }}
-                whileTap={{ scale: 0.98, background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
-                onClick={() => {
-                  setShowActions(false);
-                  item.action?.();
-                }}
-              >
-                <item.icon 
-                  className="w-[16px] h-[16px]" 
-                  style={{ color: item.danger ? '#ef4444' : textColors.description }}
-                  strokeWidth={2}
-                />
-                <span 
-                  className="font-['Inter'] font-medium text-[13px]"
-                  style={{ color: item.danger ? '#ef4444' : textColors.primary }}
-                >
-                  {item.label}
-                </span>
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Edit3 className="w-[14px] h-[14px]" style={{ color: textColors.description }} />
+            <span className="font-['Inter'] font-medium text-[11px]" style={{ color: textColors.primary }}>
+              Edit
+            </span>
+          </motion.button>
+          
+          <motion.button
+            className="flex-1 py-[10px] rounded-[8px] flex items-center justify-center gap-[6px]"
+            style={{
+              background: note.included_in_report 
+                ? 'rgba(16, 185, 129, 0.1)' 
+                : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+              border: note.included_in_report ? '1px solid rgba(16, 185, 129, 0.2)' : 'none',
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FileText 
+              className="w-[14px] h-[14px]" 
+              style={{ color: note.included_in_report ? '#10b981' : textColors.description }} 
+            />
+            <span 
+              className="font-['Inter'] font-medium text-[11px]" 
+              style={{ color: note.included_in_report ? '#10b981' : textColors.primary }}
+            >
+              {note.included_in_report ? 'In Report' : 'Add to Report'}
+            </span>
+          </motion.button>
+          
+          <motion.button
+            className="w-[40px] h-[40px] rounded-[8px] flex items-center justify-center"
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
+            }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <MoreVertical className="w-[16px] h-[16px]" style={{ color: textColors.muted }} />
+          </motion.button>
+        </div>
+      </div>
     </motion.div>
   );
 };
 
-// Template Selection Card - Large touch target
-const TemplateCard = ({ template, isDark, onSelect, isSelected }) => {
-  const textColors = getTextColors(isDark);
-  const Icon = template.icon;
-  
-  return (
-    <motion.button
-      className="flex flex-col items-center gap-[8px] p-[12px] rounded-[14px] min-w-[80px]"
-      style={{
-        background: isSelected 
-          ? `${template.color}20`
-          : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-        border: isSelected 
-          ? `2px solid ${template.color}`
-          : isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
-      }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onSelect}
-    >
-      <div 
-        className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center"
-        style={{ 
-          background: `${template.color}20`,
-        }}
-      >
-        <Icon 
-          className="w-[22px] h-[22px]" 
-          style={{ color: template.color }} 
-          strokeWidth={2}
-        />
-      </div>
-      <span 
-        className="font-['Inter'] font-medium text-[11px] text-center leading-tight"
-        style={{ color: isSelected ? template.color : textColors.primary }}
-      >
-        {template.name}
-      </span>
-    </motion.button>
-  );
-};
-
-// New Note Modal - Full screen for field use
-const NewNoteModal = ({ isOpen, onClose, isDark, isOffline }) => {
-  const [selectedTemplate, setSelectedTemplate] = useState('quick');
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [transcription, setTranscription] = useState('');
-  const [manualInput, setManualInput] = useState('');
-  const [showVoiceCommands, setShowVoiceCommands] = useState(false);
-  
-  const textColors = getTextColors(isDark);
-  const accentColors = getAccentColors(isDark);
-  
-  // Recording timer
-  useEffect(() => {
-    let interval;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
-  
-  const formatRecordingTime = (seconds) => {
+// Active Recording Overlay (shown when phone is pulled out during recording)
+const ActiveRecordingOverlay = ({ isVisible, recordingDuration, isDark, onStop }) => {
+  const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
   
-  const handleToggleRecording = () => {
-    if (isRecording) {
-      // Stop recording - simulate transcription
-      setIsRecording(false);
-      setTranscription("Detected shingle damage on north-facing slope. Three cracked shingles near ridge cap. Flashing around chimney appears compromised. Recommend full inspection of penetration points.");
-      setRecordingTime(0);
-    } else {
-      setIsRecording(true);
-      setTranscription('');
-    }
-  };
+  if (!isVisible) return null;
+  
+  return (
+    <motion.div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+      style={{
+        background: 'rgba(0, 0, 0, 0.9)',
+        backdropFilter: 'blur(20px)',
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div 
+        className="flex items-center gap-[12px] mb-[20px]"
+        animate={{ opacity: [1, 0.5, 1] }}
+        transition={{ duration: 1, repeat: Infinity }}
+      >
+        <div className="w-[16px] h-[16px] rounded-full bg-red-500" />
+        <span className="font-['SF_Mono',monospace] text-[18px] text-red-400 font-bold">
+          RECORDING ON GLASS
+        </span>
+      </motion.div>
+      
+      <span className="font-['SF_Mono',monospace] text-[48px] text-white font-bold tracking-wider mb-[8px]">
+        {formatTime(recordingDuration)}
+      </span>
+      
+      <p className="font-['Inter'] text-[14px] text-white/60 mb-[40px]">
+        Audio is being captured via smart glass
+      </p>
+      
+      <motion.button
+        className="px-[32px] py-[16px] rounded-[12px] bg-red-500 flex items-center gap-[10px]"
+        whileTap={{ scale: 0.95 }}
+        onClick={onStop}
+      >
+        <Square className="w-[20px] h-[20px] text-white" fill="white" />
+        <span className="font-['Inter'] font-semibold text-[16px] text-white">
+          Stop Recording
+        </span>
+      </motion.button>
+    </motion.div>
+  );
+};
+
+// Voice Commands Sheet
+const VoiceCommandsSheet = ({ isOpen, onClose, isDark }) => {
+  const textColors = getTextColors(isDark);
+  const accentColors = getAccentColors(isDark);
   
   if (!isOpen) return null;
   
   return (
     <motion.div
-      className="absolute inset-0 z-[100] flex flex-col"
+      className="absolute inset-0 z-50 flex flex-col"
       style={{
         background: isDark 
-          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)'
-          : 'linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%)',
+          ? 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)'
+          : 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
       }}
-      initial={{ opacity: 0, y: '100%' }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: '100%' }}
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 30, stiffness: 300 }}
     >
       {/* Header */}
-      <div 
-        className="shrink-0 px-[20px] pt-[16px] pb-[12px] flex items-center justify-between"
-        style={{
-          borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
-        }}
+      <div className="shrink-0 px-[20px] pt-[16px] pb-[12px] flex items-center justify-between"
+        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)' }}
       >
         <motion.button
-          className="w-[44px] h-[44px] rounded-[12px] flex items-center justify-center"
-          style={{
-            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-          }}
+          className="w-[40px] h-[40px] rounded-[10px] flex items-center justify-center"
+          style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
         >
-          <X className="w-[20px] h-[20px]" style={{ color: textColors.primary }} strokeWidth={2} />
+          <ChevronDown className="w-[20px] h-[20px]" style={{ color: textColors.primary }} />
         </motion.button>
         
-        <h1 
-          className="font-['Space_Grotesk'] font-bold text-[18px]"
-          style={{ color: textColors.primary }}
-        >
-          New Note
-        </h1>
+        <h2 className="font-['Space_Grotesk'] font-bold text-[18px]" style={{ color: textColors.primary }}>
+          Voice Commands
+        </h2>
         
-        <motion.button
-          className="px-[16px] py-[10px] rounded-[10px] flex items-center gap-[6px]"
-          style={{
-            background: accentColors.primary,
-            opacity: !transcription && !manualInput ? 0.5 : 1,
-          }}
-          whileTap={{ scale: 0.95 }}
-          disabled={!transcription && !manualInput}
-        >
-          <Check className="w-[16px] h-[16px] text-white" strokeWidth={2.5} />
-          <span className="font-['Inter'] font-semibold text-[13px] text-white">Save</span>
-        </motion.button>
+        <div className="w-[40px]" />
       </div>
       
-      {/* Offline indicator */}
-      {isOffline && <OfflineBanner isDark={isDark} />}
-      
-      {/* Template Selection - Horizontal scroll */}
-      <div className="shrink-0 px-[20px] py-[16px]">
-        <p 
-          className="font-['Inter'] font-medium text-[12px] mb-[10px]"
-          style={{ color: textColors.muted }}
-        >
-          SELECT TEMPLATE
-        </p>
-        <div className="flex gap-[10px] overflow-x-auto no-scrollbar pb-[4px]">
-          {noteTemplates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              isDark={isDark}
-              isSelected={selectedTemplate === template.id}
-              onSelect={() => setSelectedTemplate(template.id)}
-            />
-          ))}
-        </div>
-      </div>
-      
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto px-[20px] pb-[120px]">
-        {/* Voice Recording Section */}
-        <div 
-          className="rounded-[20px] p-[24px] mb-[16px]"
-          style={{
-            background: isDark 
-              ? 'rgba(30, 41, 59, 0.6)'
-              : 'rgba(255, 255, 255, 0.8)',
-            border: isDark 
-              ? '1px solid rgba(255,255,255,0.1)'
-              : '1px solid rgba(0,0,0,0.06)',
-          }}
-        >
-          <div className="flex flex-col items-center">
-            {/* Recording Button */}
-            <VoiceRecordButton
-              isRecording={isRecording}
-              onToggle={handleToggleRecording}
-              isDark={isDark}
-            />
-            
-            {/* Recording Status */}
-            <div className="mt-[16px] text-center">
-              {isRecording ? (
-                <>
-                  <motion.p 
-                    className="font-['Inter'] font-bold text-[24px]"
-                    style={{ color: '#ef4444' }}
-                    animate={{ opacity: [1, 0.5, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    {formatRecordingTime(recordingTime)}
-                  </motion.p>
-                  <p 
-                    className="font-['Inter'] text-[13px] mt-[4px]"
-                    style={{ color: textColors.muted }}
-                  >
-                    Recording... Tap to stop
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p 
-                    className="font-['Inter'] font-semibold text-[14px]"
-                    style={{ color: textColors.primary }}
-                  >
-                    Tap to start voice note
-                  </p>
-                  <p 
-                    className="font-['Inter'] text-[12px] mt-[4px]"
-                    style={{ color: textColors.muted }}
-                  >
-                    or say "Hey Zuper, new note"
-                  </p>
-                </>
-              )}
-            </div>
-            
-            {/* Voice Commands Help */}
-            <motion.button
-              className="mt-[16px] flex items-center gap-[6px] px-[12px] py-[8px] rounded-[8px]"
-              style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-              }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowVoiceCommands(!showVoiceCommands)}
-            >
-              <Volume2 className="w-[14px] h-[14px]" style={{ color: accentColors.primary }} />
-              <span 
-                className="font-['Inter'] font-medium text-[11px]"
-                style={{ color: accentColors.primary }}
-              >
-                Voice Commands
-              </span>
-              <ChevronDown 
-                className={`w-[12px] h-[12px] transition-transform ${showVoiceCommands ? 'rotate-180' : ''}`}
-                style={{ color: accentColors.primary }}
-              />
-            </motion.button>
-            
-            {/* Voice Commands List */}
-            <AnimatePresence>
-              {showVoiceCommands && (
-                <motion.div
-                  className="w-full mt-[12px] rounded-[12px] overflow-hidden"
-                  style={{
-                    background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
-                  }}
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                >
-                  <div className="p-[12px]">
-                    {voiceCommands.map((cmd, idx) => (
-                      <div 
-                        key={idx} 
-                        className="flex items-center justify-between py-[8px]"
-                        style={{
-                          borderBottom: idx < voiceCommands.length - 1 
-                            ? isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.05)'
-                            : 'none',
-                        }}
-                      >
-                        <span 
-                          className="font-['SF_Mono','monospace'] text-[11px]"
-                          style={{ color: accentColors.primary }}
-                        >
-                          {cmd.command}
-                        </span>
-                        <span 
-                          className="font-['Inter'] text-[10px]"
-                          style={{ color: textColors.muted }}
-                        >
-                          {cmd.action}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-[20px] py-[16px]">
+        {/* Recording Commands */}
+        <div className="mb-[24px]">
+          <div className="flex items-center gap-[8px] mb-[12px]">
+            <Mic className="w-[16px] h-[16px]" style={{ color: accentColors.primary }} />
+            <h3 className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+              Start Recording
+            </h3>
           </div>
-        </div>
-        
-        {/* Transcription Result */}
-        {transcription && (
-          <motion.div
-            className="rounded-[16px] p-[16px] mb-[16px]"
-            style={{
-              background: isDark 
-                ? 'rgba(16, 185, 129, 0.1)'
-                : 'rgba(16, 185, 129, 0.08)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-            }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center gap-[8px] mb-[10px]">
-              <CheckCircle className="w-[16px] h-[16px] text-emerald-500" strokeWidth={2} />
-              <span className="font-['Inter'] font-semibold text-[12px] text-emerald-600">
-                Transcription Complete
-              </span>
-            </div>
-            <p 
-              className="font-['Inter'] text-[14px] leading-[1.6]"
-              style={{ color: textColors.primary }}
-            >
-              {transcription}
-            </p>
-            <button 
-              className="mt-[12px] font-['Inter'] font-medium text-[12px] text-emerald-600"
-            >
-              Edit transcription →
-            </button>
-          </motion.div>
-        )}
-        
-        {/* Manual Input Section */}
-        <div 
-          className="rounded-[16px] p-[16px]"
-          style={{
-            background: isDark 
-              ? 'rgba(30, 41, 59, 0.6)'
-              : 'rgba(255, 255, 255, 0.8)',
-            border: isDark 
-              ? '1px solid rgba(255,255,255,0.1)'
-              : '1px solid rgba(0,0,0,0.06)',
-          }}
-        >
-          <p 
-            className="font-['Inter'] font-medium text-[12px] mb-[10px]"
-            style={{ color: textColors.muted }}
-          >
-            OR TYPE MANUALLY
-          </p>
-          <textarea
-            className="w-full h-[120px] rounded-[12px] p-[14px] resize-none font-['Inter'] text-[14px]"
-            style={{
-              background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
-              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
-              color: textColors.primary,
-            }}
-            placeholder="Type your note here..."
-            value={manualInput}
-            onChange={(e) => setManualInput(e.target.value)}
-          />
-          
-          {/* Quick Actions */}
-          <div className="flex gap-[10px] mt-[12px]">
-            <motion.button
-              className="flex-1 py-[12px] rounded-[10px] flex items-center justify-center gap-[8px]"
-              style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Camera className="w-[18px] h-[18px]" style={{ color: textColors.description }} />
-              <span className="font-['Inter'] font-medium text-[12px]" style={{ color: textColors.primary }}>
-                Add Photo
-              </span>
-            </motion.button>
-            
-            <motion.button
-              className="flex-1 py-[12px] rounded-[10px] flex items-center justify-center gap-[8px]"
-              style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
-              }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Tag className="w-[18px] h-[18px]" style={{ color: textColors.description }} />
-              <span className="font-['Inter'] font-medium text-[12px]" style={{ color: textColors.primary }}>
-                Add Tags
-              </span>
-            </motion.button>
-          </div>
-        </div>
-        
-        {/* Auto-captured Metadata */}
-        <div className="mt-[16px] p-[14px] rounded-[12px]" style={{
-          background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-        }}>
-          <p 
-            className="font-['Inter'] font-medium text-[10px] mb-[10px] uppercase tracking-wide"
-            style={{ color: textColors.muted }}
-          >
-            Auto-captured
-          </p>
-          <div className="flex flex-wrap gap-[8px]">
-            {[
-              { icon: Clock, label: new Date().toLocaleTimeString() },
-              { icon: MapPin, label: 'Current location' },
-              { icon: ThermometerSun, label: '72°F Sunny' },
-              { icon: Battery, label: '85%' },
-            ].map((item, idx) => (
+          <div className="space-y-[8px]">
+            {voiceCommands.recording.map((cmd, idx) => (
               <div 
                 key={idx}
-                className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
-                style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}
+                className="flex items-center justify-between p-[12px] rounded-[10px]"
+                style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
               >
-                <item.icon className="w-[12px] h-[12px]" style={{ color: textColors.muted }} />
-                <span className="font-['Inter'] text-[10px]" style={{ color: textColors.description }}>
-                  {item.label}
+                <span className="font-['SF_Mono',monospace] text-[12px]" style={{ color: accentColors.primary }}>
+                  {cmd.command}
+                </span>
+                <span className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                  {cmd.action}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Control Commands */}
+        <div className="mb-[24px]">
+          <div className="flex items-center gap-[8px] mb-[12px]">
+            <Settings className="w-[16px] h-[16px]" style={{ color: accentColors.primary }} />
+            <h3 className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+              Control Commands
+            </h3>
+          </div>
+          <div className="space-y-[8px]">
+            {voiceCommands.control.map((cmd, idx) => (
+              <div 
+                key={idx}
+                className="flex items-center justify-between p-[12px] rounded-[10px]"
+                style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
+              >
+                <span className="font-['SF_Mono',monospace] text-[12px]" style={{ color: accentColors.primary }}>
+                  {cmd.command}
+                </span>
+                <span className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                  {cmd.action}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Playback Commands */}
+        <div>
+          <div className="flex items-center gap-[8px] mb-[12px]">
+            <Headphones className="w-[16px] h-[16px]" style={{ color: accentColors.primary }} />
+            <h3 className="font-['Inter'] font-semibold text-[14px]" style={{ color: textColors.primary }}>
+              System Commands
+            </h3>
+          </div>
+          <div className="space-y-[8px]">
+            {voiceCommands.playback.map((cmd, idx) => (
+              <div 
+                key={idx}
+                className="flex items-center justify-between p-[12px] rounded-[10px]"
+                style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}
+              >
+                <span className="font-['SF_Mono',monospace] text-[12px]" style={{ color: accentColors.primary }}>
+                  {cmd.command}
+                </span>
+                <span className="font-['Inter'] text-[11px]" style={{ color: textColors.muted }}>
+                  {cmd.action}
                 </span>
               </div>
             ))}
@@ -901,271 +1068,587 @@ const NewNoteModal = ({ isOpen, onClose, isDark, isOffline }) => {
 
 // ============ MAIN COMPONENT ============
 
-export const NotesPage = ({ isDark = false }) => {
-  const [notes, setNotes] = useState(sampleNotes);
-  const [isOffline, setIsOffline] = useState(false);
-  const [showNewNote, setShowNewNote] = useState(false);
+export const NotesPage = ({ isDark = false, isGlassConnected = true, activeJob = null }) => {
+  // State
+  const [notes, setNotes] = useState(generateSampleNotes());
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'hud'
+  const [selectedNotes, setSelectedNotes] = useState([]);
+  const [expandedNotes, setExpandedNotes] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTemplate, setFilterTemplate] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [showVoiceCommands, setShowVoiceCommands] = useState(false);
+  const [isRecordingOnGlass, setIsRecordingOnGlass] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [lastHUDAction, setLastHUDAction] = useState(null);
   
   const textColors = getTextColors(isDark);
   const accentColors = getAccentColors(isDark);
   
-  // Filter notes
+  // Simulate glass recording
+  useEffect(() => {
+    let interval;
+    if (isRecordingOnGlass) {
+      interval = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecordingOnGlass]);
+  
+  // Filter and sort notes
   const filteredNotes = useMemo(() => {
-    return notes.filter(note => {
-      const matchesSearch = !searchQuery || 
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTemplate = filterTemplate === 'all' || note.template === filterTemplate;
-      return matchesSearch && matchesTemplate;
+    let result = [...notes];
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(note => 
+        (note.edited_text || note.transcription_text).toLowerCase().includes(query) ||
+        note.categorization.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        note.categorization.roof_section?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Type filter
+    if (filterType !== 'all') {
+      result = result.filter(note => note.categorization.type === filterType);
+    }
+    
+    // Severity filter
+    if (filterSeverity !== 'all') {
+      result = result.filter(note => note.categorization.severity === filterSeverity);
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_timestamp) - new Date(a.created_timestamp);
+        case 'oldest':
+          return new Date(a.created_timestamp) - new Date(b.created_timestamp);
+        case 'severity':
+          const severityOrder = { high: 0, medium: 1, low: 2 };
+          return severityOrder[a.categorization.severity] - severityOrder[b.categorization.severity];
+        default:
+          return 0;
+      }
     });
-  }, [notes, searchQuery, filterTemplate]);
+    
+    return result;
+  }, [notes, searchQuery, filterType, filterSeverity, sortBy]);
   
   // Stats
   const stats = useMemo(() => ({
     total: notes.length,
-    synced: notes.filter(n => n.syncStatus === 'synced').length,
-    pending: notes.filter(n => n.syncStatus === 'pending').length,
-    priority: notes.filter(n => n.priority === 'high').length,
+    unreviewed: notes.filter(n => !n.reviewed).length,
+    inReport: notes.filter(n => n.included_in_report).length,
+    pending: notes.filter(n => n.sync_status === 'pending').length,
+    highSeverity: notes.filter(n => n.categorization.severity === 'high').length,
   }), [notes]);
+  
+  // Handlers
+  const handleToggleSelect = (noteId) => {
+    setSelectedNotes(prev => 
+      prev.includes(noteId) 
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
+  };
+  
+  const handleSelectAll = () => {
+    if (selectedNotes.length === filteredNotes.length) {
+      setSelectedNotes([]);
+    } else {
+      setSelectedNotes(filteredNotes.map(n => n.id));
+    }
+  };
+  
+  const handleToggleExpand = (noteId) => {
+    setExpandedNotes(prev => 
+      prev.includes(noteId) 
+        ? prev.filter(id => id !== noteId)
+        : [...prev, noteId]
+    );
+  };
+  
+  const handleSimulateRecording = () => {
+    setIsRecordingOnGlass(true);
+    setRecordingDuration(0);
+  };
+  
+  const handleStopRecording = () => {
+    setIsRecordingOnGlass(false);
+    setLastHUDAction('NOTE SAVED');
+    setTimeout(() => setLastHUDAction(null), 2000);
+    
+    // Add new note
+    const newNote = {
+      id: `note-${Date.now()}`,
+      job_id: 'job-1247',
+      inspection_id: 'insp-5821',
+      created_timestamp: new Date().toISOString(),
+      recording_duration: recordingDuration,
+      audio_file_path: '/audio/new-note.webm',
+      transcription_text: 'New voice note captured from smart glass. Processing transcription...',
+      transcription_confidence: 0,
+      edited_text: null,
+      metadata: {
+        gps_coordinates: { lat: 34.0522, lng: -118.2437 },
+        weather: { temp: 72, condition: 'sunny', humidity: 45 },
+        device_battery: 80,
+        glass_model: 'Zuper Glass Pro',
+      },
+      categorization: {
+        type: 'quick',
+        severity: 'low',
+        roof_section: 'Auto-detected',
+        tags: [],
+      },
+      attachments: { photos: [], videos: [] },
+      sync_status: 'syncing',
+      reviewed: false,
+      included_in_report: false,
+    };
+    
+    setNotes(prev => [newNote, ...prev]);
+    setRecordingDuration(0);
+    
+    // Simulate transcription complete
+    setTimeout(() => {
+      setNotes(prev => prev.map(n => 
+        n.id === newNote.id 
+          ? { 
+              ...n, 
+              transcription_text: 'This is a simulated transcription from voice recording on smart glass. The area near the gutter shows signs of water pooling. Recommend checking the slope and drainage.',
+              transcription_confidence: 92,
+              sync_status: 'synced',
+            }
+          : n
+      ));
+    }, 3000);
+  };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      {/* Offline Banner */}
-      {isOffline && <OfflineBanner isDark={isDark} />}
+    <div className="flex flex-col w-full h-full relative">
+      {/* Active Recording Overlay */}
+      <AnimatePresence>
+        {isRecordingOnGlass && viewMode === 'list' && (
+          <ActiveRecordingOverlay
+            isVisible={true}
+            recordingDuration={recordingDuration}
+            isDark={isDark}
+            onStop={handleStopRecording}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Voice Commands Sheet */}
+      <AnimatePresence>
+        {showVoiceCommands && (
+          <VoiceCommandsSheet
+            isOpen={showVoiceCommands}
+            onClose={() => setShowVoiceCommands(false)}
+            isDark={isDark}
+          />
+        )}
+      </AnimatePresence>
       
       {/* Header */}
       <div className="shrink-0 px-[24px] pt-[8px] pb-[12px]">
         <div className="flex items-center justify-between mb-[12px]">
           <div>
             <h1 
-              className="font-['Space_Grotesk'] font-bold text-[28px]"
+              className="font-['Space_Grotesk'] font-bold text-[26px]"
               style={{ color: textColors.primary }}
             >
               Notes
             </h1>
             <p 
-              className="font-['Inter'] text-[13px] mt-[2px]"
+              className="font-['Inter'] text-[12px] mt-[2px]"
               style={{ color: textColors.muted }}
             >
-              {stats.total} notes • {stats.synced} synced
+              {stats.total} notes • {stats.unreviewed} to review
             </p>
           </div>
           
-          {/* Quick sync status */}
-          {stats.pending > 0 && (
-            <div 
-              className="flex items-center gap-[6px] px-[10px] py-[6px] rounded-[8px]"
-              style={{ background: 'rgba(245, 158, 11, 0.15)' }}
-            >
-              <Cloud className="w-[14px] h-[14px] text-amber-500" />
-              <span className="font-['Inter'] font-semibold text-[11px] text-amber-600">
-                {stats.pending} pending
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Search Bar - Large touch target */}
-        <div 
-          className="flex items-center gap-[10px] px-[14px] py-[12px] rounded-[14px]"
-          style={{
-            background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
-          }}
-        >
-          <Search className="w-[20px] h-[20px]" style={{ color: textColors.muted }} />
-          <input
-            type="text"
-            placeholder="Search notes..."
-            className="flex-1 bg-transparent font-['Inter'] text-[14px] outline-none"
-            style={{ color: textColors.primary }}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <motion.button
-            className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center"
-            style={{
-              background: showFilters ? accentColors.bgMedium : 'transparent',
-              border: showFilters ? `1px solid ${accentColors.primary}40` : 'none',
-            }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowFilters(!showFilters)}
+          {/* View Toggle */}
+          <div 
+            className="flex items-center rounded-[10px] p-[4px]"
+            style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
           >
-            <Filter 
-              className="w-[18px] h-[18px]" 
-              style={{ color: showFilters ? accentColors.primary : textColors.muted }} 
-            />
-          </motion.button>
+            <motion.button
+              className="px-[12px] py-[8px] rounded-[8px]"
+              style={{
+                background: viewMode === 'list' ? accentColors.primary : 'transparent',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setViewMode('list')}
+            >
+              <List 
+                className="w-[16px] h-[16px]" 
+                style={{ color: viewMode === 'list' ? 'white' : textColors.muted }} 
+              />
+            </motion.button>
+            <motion.button
+              className="px-[12px] py-[8px] rounded-[8px]"
+              style={{
+                background: viewMode === 'hud' ? accentColors.primary : 'transparent',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setViewMode('hud')}
+            >
+              <Radio 
+                className="w-[16px] h-[16px]" 
+                style={{ color: viewMode === 'hud' ? 'white' : textColors.muted }} 
+              />
+            </motion.button>
+          </div>
         </div>
         
-        {/* Filter chips */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              className="flex gap-[8px] mt-[12px] overflow-x-auto no-scrollbar"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-            >
-              <motion.button
-                className="px-[12px] py-[8px] rounded-[8px] shrink-0"
-                style={{
-                  background: filterTemplate === 'all' ? accentColors.bgMedium : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                  border: filterTemplate === 'all' ? `1px solid ${accentColors.primary}40` : 'transparent',
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setFilterTemplate('all')}
-              >
-                <span 
-                  className="font-['Inter'] font-medium text-[12px]"
-                  style={{ color: filterTemplate === 'all' ? accentColors.primary : textColors.description }}
-                >
-                  All
-                </span>
-              </motion.button>
-              {noteTemplates.map((template) => (
-                <motion.button
-                  key={template.id}
-                  className="px-[12px] py-[8px] rounded-[8px] flex items-center gap-[6px] shrink-0"
-                  style={{
-                    background: filterTemplate === template.id ? `${template.color}20` : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                    border: filterTemplate === template.id ? `1px solid ${template.color}40` : 'transparent',
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setFilterTemplate(template.id)}
-                >
-                  <template.icon 
-                    className="w-[14px] h-[14px]" 
-                    style={{ color: filterTemplate === template.id ? template.color : textColors.muted }} 
-                  />
-                  <span 
-                    className="font-['Inter'] font-medium text-[12px]"
-                    style={{ color: filterTemplate === template.id ? template.color : textColors.description }}
-                  >
-                    {template.name}
-                  </span>
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Connection Status */}
+        <ConnectionBanner
+          isConnected={isGlassConnected}
+          glassInfo={{ model: 'Zuper Glass Pro', battery: 85 }}
+          isDark={isDark}
+          onReconnect={() => {}}
+        />
       </div>
       
-      {/* Notes List */}
-      <div className="flex-1 overflow-y-auto px-[24px] pb-[180px]">
-        {/* Priority Notes Section */}
-        {stats.priority > 0 && filterTemplate === 'all' && (
+      {/* Content based on view mode */}
+      {viewMode === 'hud' ? (
+        /* HUD Preview Mode */
+        <div className="flex-1 overflow-y-auto px-[24px] pb-[100px]">
+          {/* Glass HUD Preview */}
           <div className="mb-[16px]">
             <p 
-              className="font-['Inter'] font-semibold text-[11px] uppercase tracking-wide mb-[10px] flex items-center gap-[6px]"
-              style={{ color: '#ef4444' }}
-            >
-              <AlertCircle className="w-[14px] h-[14px]" />
-              Priority ({stats.priority})
-            </p>
-            <div className="flex flex-col gap-[12px]">
-              {filteredNotes
-                .filter(n => n.priority === 'high')
-                .map((note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    isDark={isDark}
-                    onPress={() => {}}
-                    onDelete={() => setNotes(notes.filter(n => n.id !== note.id))}
-                    onEdit={() => {}}
-                  />
-                ))}
-            </div>
-          </div>
-        )}
-        
-        {/* All Notes */}
-        <div>
-          {filterTemplate === 'all' && stats.priority > 0 && (
-            <p 
-              className="font-['Inter'] font-semibold text-[11px] uppercase tracking-wide mb-[10px]"
+              className="font-['Inter'] font-medium text-[11px] uppercase tracking-wide mb-[8px]"
               style={{ color: textColors.muted }}
             >
-              All Notes
+              Glass HUD Preview
             </p>
-          )}
-          <div className="flex flex-col gap-[12px]">
-            {filteredNotes
-              .filter(n => n.priority !== 'high' || filterTemplate !== 'all')
-              .map((note, idx) => (
+            <GlassHUDPreview
+              isRecording={isRecordingOnGlass}
+              recordingDuration={recordingDuration}
+              isConnected={isGlassConnected}
+              batteryLevel={85}
+              jobName="Roof Inspection #1247 - 123 Oak Street"
+              lastAction={lastHUDAction}
+              isDark={isDark}
+            />
+          </div>
+          
+          {/* Recording Controls */}
+          <div 
+            className="rounded-[16px] p-[16px] mb-[16px]"
+            style={{
+              background: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.8)',
+              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            }}
+          >
+            <p className="font-['Inter'] font-semibold text-[13px] mb-[12px]" style={{ color: textColors.primary }}>
+              Simulate Glass Recording
+            </p>
+            
+            <div className="flex gap-[10px]">
+              <motion.button
+                className="flex-1 py-[14px] rounded-[12px] flex items-center justify-center gap-[8px]"
+                style={{
+                  background: isRecordingOnGlass 
+                    ? 'rgba(239, 68, 68, 0.2)' 
+                    : `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
+                  border: isRecordingOnGlass ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={isRecordingOnGlass ? handleStopRecording : handleSimulateRecording}
+              >
+                {isRecordingOnGlass ? (
+                  <>
+                    <Square className="w-[18px] h-[18px] text-red-500" fill="#ef4444" />
+                    <span className="font-['Inter'] font-semibold text-[14px] text-red-500">
+                      Stop Recording
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-[18px] h-[18px] text-white" />
+                    <span className="font-['Inter'] font-semibold text-[14px] text-white">
+                      Start Recording
+                    </span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </div>
+          
+          {/* Voice Commands Button */}
+          <motion.button
+            className="w-full py-[14px] rounded-[12px] flex items-center justify-center gap-[8px]"
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+            }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowVoiceCommands(true)}
+          >
+            <Volume2 className="w-[16px] h-[16px]" style={{ color: accentColors.primary }} />
+            <span className="font-['Inter'] font-medium text-[13px]" style={{ color: textColors.primary }}>
+              View Voice Commands
+            </span>
+          </motion.button>
+        </div>
+      ) : (
+        /* List View Mode */
+        <>
+          {/* Search & Filters */}
+          <div className="shrink-0 px-[24px] pb-[12px]">
+            {/* Search Bar */}
+            <div 
+              className="flex items-center gap-[10px] px-[14px] py-[10px] rounded-[12px] mb-[10px]"
+              style={{
+                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+              }}
+            >
+              <Search className="w-[18px] h-[18px]" style={{ color: textColors.muted }} />
+              <input
+                type="text"
+                placeholder="Search notes, tags, locations..."
+                className="flex-1 bg-transparent font-['Inter'] text-[13px] outline-none"
+                style={{ color: textColors.primary }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <motion.button
+                className="w-[32px] h-[32px] rounded-[8px] flex items-center justify-center"
+                style={{
+                  background: showFilters ? accentColors.bgMedium : 'transparent',
+                }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter 
+                  className="w-[16px] h-[16px]" 
+                  style={{ color: showFilters ? accentColors.primary : textColors.muted }} 
+                />
+              </motion.button>
+            </div>
+            
+            {/* Filter Options */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  {/* Type Filter */}
+                  <div className="flex gap-[6px] mb-[8px] overflow-x-auto no-scrollbar">
+                    {['all', ...noteTemplates.map(t => t.id)].map((type) => {
+                      const template = noteTemplates.find(t => t.id === type);
+                      return (
+                        <motion.button
+                          key={type}
+                          className="px-[10px] py-[6px] rounded-[8px] flex items-center gap-[4px] shrink-0"
+                          style={{
+                            background: filterType === type 
+                              ? (template?.color || accentColors.primary) + '20'
+                              : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                            border: filterType === type 
+                              ? `1px solid ${template?.color || accentColors.primary}40`
+                              : 'none',
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setFilterType(type)}
+                        >
+                          {template && <template.icon className="w-[12px] h-[12px]" style={{ color: template.color }} />}
+                          <span 
+                            className="font-['Inter'] font-medium text-[11px]"
+                            style={{ color: filterType === type ? (template?.color || accentColors.primary) : textColors.description }}
+                          >
+                            {type === 'all' ? 'All Types' : template?.name}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Severity & Sort */}
+                  <div className="flex gap-[8px]">
+                    <select
+                      className="flex-1 px-[10px] py-[8px] rounded-[8px] font-['Inter'] text-[11px] outline-none"
+                      style={{
+                        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        color: textColors.primary,
+                        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+                      }}
+                      value={filterSeverity}
+                      onChange={(e) => setFilterSeverity(e.target.value)}
+                    >
+                      <option value="all">All Severity</option>
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                    
+                    <select
+                      className="flex-1 px-[10px] py-[8px] rounded-[8px] font-['Inter'] text-[11px] outline-none"
+                      style={{
+                        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        color: textColors.primary,
+                        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.05)',
+                      }}
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="severity">By Severity</option>
+                    </select>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {/* Batch Actions (when items selected) */}
+            <AnimatePresence>
+              {selectedNotes.length > 0 && (
+                <motion.div
+                  className="flex items-center gap-[8px] mt-[10px] p-[10px] rounded-[10px]"
+                  style={{ background: accentColors.bgLight }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <span className="font-['Inter'] font-medium text-[12px]" style={{ color: accentColors.primary }}>
+                    {selectedNotes.length} selected
+                  </span>
+                  <div className="flex-1" />
+                  <motion.button 
+                    className="px-[10px] py-[6px] rounded-[6px]"
+                    style={{ background: accentColors.bgMedium }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="font-['Inter'] font-medium text-[11px]" style={{ color: accentColors.primary }}>
+                      Add to Report
+                    </span>
+                  </motion.button>
+                  <motion.button 
+                    className="px-[10px] py-[6px] rounded-[6px]"
+                    style={{ background: 'rgba(239, 68, 68, 0.1)' }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedNotes([])}
+                  >
+                    <span className="font-['Inter'] font-medium text-[11px] text-red-500">
+                      Clear
+                    </span>
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          
+          {/* Notes List */}
+          <div className="flex-1 overflow-y-auto px-[24px] pb-[180px]">
+            {/* Stats Bar */}
+            <div className="flex items-center gap-[8px] mb-[12px]">
+              {stats.highSeverity > 0 && (
+                <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+                  style={{ background: 'rgba(239, 68, 68, 0.1)' }}
+                >
+                  <AlertTriangle className="w-[12px] h-[12px] text-red-500" />
+                  <span className="font-['Inter'] font-semibold text-[10px] text-red-500">
+                    {stats.highSeverity} priority
+                  </span>
+                </div>
+              )}
+              {stats.pending > 0 && (
+                <div className="flex items-center gap-[4px] px-[8px] py-[4px] rounded-[6px]"
+                  style={{ background: 'rgba(245, 158, 11, 0.1)' }}
+                >
+                  <Cloud className="w-[12px] h-[12px] text-amber-500" />
+                  <span className="font-['Inter'] font-semibold text-[10px] text-amber-500">
+                    {stats.pending} syncing
+                  </span>
+                </div>
+              )}
+              <div className="flex-1" />
+              <motion.button
+                className="font-['Inter'] font-medium text-[11px]"
+                style={{ color: accentColors.primary }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSelectAll}
+              >
+                {selectedNotes.length === filteredNotes.length ? 'Deselect All' : 'Select All'}
+              </motion.button>
+            </div>
+            
+            {/* Notes */}
+            <div className="flex flex-col gap-[12px]">
+              {filteredNotes.map((note) => (
                 <NoteCard
                   key={note.id}
                   note={note}
                   isDark={isDark}
-                  onPress={() => {}}
-                  onDelete={() => setNotes(notes.filter(n => n.id !== note.id))}
+                  isSelected={selectedNotes.includes(note.id)}
+                  onToggleSelect={() => handleToggleSelect(note.id)}
                   onEdit={() => {}}
+                  onDelete={() => setNotes(prev => prev.filter(n => n.id !== note.id))}
+                  isExpanded={expandedNotes.includes(note.id)}
+                  onToggleExpand={() => handleToggleExpand(note.id)}
                 />
               ))}
-          </div>
-        </div>
-        
-        {/* Empty State */}
-        {filteredNotes.length === 0 && (
-          <motion.div
-            className="flex flex-col items-center justify-center py-[60px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <div 
-              className="w-[80px] h-[80px] rounded-[20px] flex items-center justify-center mb-[16px]"
-              style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}
-            >
-              <FileText className="w-[36px] h-[36px]" style={{ color: textColors.muted }} />
             </div>
-            <p 
-              className="font-['Inter'] font-semibold text-[16px] mb-[6px]"
-              style={{ color: textColors.primary }}
-            >
-              No notes found
-            </p>
-            <p 
-              className="font-['Inter'] text-[13px] text-center max-w-[200px]"
-              style={{ color: textColors.muted }}
-            >
-              {searchQuery ? 'Try a different search' : 'Tap + to create your first note'}
-            </p>
-          </motion.div>
-        )}
-      </div>
+            
+            {/* Empty State */}
+            {filteredNotes.length === 0 && (
+              <motion.div
+                className="flex flex-col items-center justify-center py-[60px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div 
+                  className="w-[80px] h-[80px] rounded-[20px] flex items-center justify-center mb-[16px]"
+                  style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}
+                >
+                  <FileText className="w-[36px] h-[36px]" style={{ color: textColors.muted }} />
+                </div>
+                <p 
+                  className="font-['Inter'] font-semibold text-[16px] mb-[6px]"
+                  style={{ color: textColors.primary }}
+                >
+                  No notes found
+                </p>
+                <p 
+                  className="font-['Inter'] text-[13px] text-center max-w-[240px]"
+                  style={{ color: textColors.muted }}
+                >
+                  {searchQuery ? 'Try adjusting your search or filters' : 'Notes captured on glass will appear here'}
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </>
+      )}
       
-      {/* Floating Action Button - Extra large for field use */}
+      {/* FAB - Voice Commands */}
       <motion.button
-        className="absolute bottom-[100px] right-[24px] w-[64px] h-[64px] rounded-full flex items-center justify-center z-50"
+        className="absolute bottom-[100px] right-[24px] w-[56px] h-[56px] rounded-full flex items-center justify-center z-40"
         style={{
           background: `linear-gradient(135deg, ${accentColors.primary} 0%, ${accentColors.primaryLight} 100%)`,
           boxShadow: `0 8px 24px ${isDark ? 'rgba(133, 88, 242, 0.4)' : 'rgba(2, 132, 199, 0.35)'}`,
         }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setShowNewNote(true)}
-        aria-label="Create new note"
+        onClick={() => setShowVoiceCommands(true)}
+        aria-label="Voice commands"
       >
-        <Plus className="w-[28px] h-[28px] text-white" strokeWidth={2.5} />
+        <Mic className="w-[24px] h-[24px] text-white" strokeWidth={2} />
       </motion.button>
-      
-      {/* New Note Modal */}
-      <AnimatePresence>
-        {showNewNote && (
-          <NewNoteModal
-            isOpen={showNewNote}
-            onClose={() => setShowNewNote(false)}
-            isDark={isDark}
-            isOffline={isOffline}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
 export default NotesPage;
-
