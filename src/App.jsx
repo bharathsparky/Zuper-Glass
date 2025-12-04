@@ -247,6 +247,9 @@ export default function App() {
           )}
         </AnimatePresence>
 
+        {/* Main App Content - Only show when logged in and splash is done */}
+        {isLoggedIn && !showSplash && (
+          <>
         {/* Status Bar */}
         <div className="absolute z-50 flex gap-[154px] items-center justify-center left-0 top-0 w-[393px] pb-[19px] pt-[21px] px-[16px]">
           <div className="basis-0 grow flex gap-[10px] items-center justify-center h-[22px] pt-[2px]">
@@ -1198,7 +1201,6 @@ export default function App() {
           </motion.div>
         </motion.div>
 
-
         {/* Camera Screen - Inside Phone Frame */}
         <CameraScreen 
           isOpen={showCameraScreen}
@@ -1206,6 +1208,8 @@ export default function App() {
           inspectionTitle="Roof inspection for Henry"
           onCapture={handleCameraCapture}
         />
+          </>
+        )}
       </motion.div>
     </motion.div>
   );
