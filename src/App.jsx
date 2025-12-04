@@ -560,110 +560,109 @@ export default function App() {
             </div>
           </div>
 
-          {/* Create Inspections Card - Premium Glass Treatment */}
+          {/* Create Inspections Card - Dark Theme */}
           <div className="flex flex-col gap-[10px] items-start w-full shrink-0">
             <motion.div 
-              className="relative h-[222px] w-[345px] overflow-hidden rounded-[20px] shrink-0 cursor-pointer group"
+              className="relative h-[180px] w-[345px] overflow-hidden rounded-[16px] shrink-0 cursor-pointer group"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
               whileTap={{ scale: 0.98 }}
               style={{
                 boxShadow: `
-                  0 25px 60px rgba(139, 21, 56, 0.15),
-                  0 12px 28px rgba(220, 20, 60, 0.1),
-                  0 4px 12px rgba(255, 87, 51, 0.08)
+                  0 25px 60px rgba(6, 21, 40, 0.5),
+                  0 12px 28px rgba(12, 54, 90, 0.35),
+                  0 4px 12px rgba(0, 0, 0, 0.25),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                  0 0 40px rgba(16, 185, 129, 0.1)
                 `
               }}
             >
-              {/* Rich Mesh Gradient Background */}
-              <div className="absolute inset-0">
-                {/* Base gradient */}
+              {/* Dark Gradient Background - Green accent */}
+              <div className="absolute inset-0 rounded-[16px]">
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'linear-gradient(135deg, #8B1538 0%, #DC143C 25%, #FF6B6B 45%, #FF5733 60%, #FF8C42 75%, #FFB347 90%, #FFA500 100%)'
+                    background: `linear-gradient(135deg, 
+                      #0c1929 0%, 
+                      #0f2744 20%,
+                      #0d3a2d 40%,
+                      #0d2847 60%,
+                      #091e3a 80%,
+                      #061528 100%
+                    )`
                   }}
                 />
-                {/* Radial overlay - deep burgundy bottom-left */}
+                {/* Tech grid pattern */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px] opacity-[0.1]"
                   style={{
-                    background: 'radial-gradient(ellipse 70% 70% at 0% 100%, rgba(139,21,56,0.6) 0%, transparent 50%)'
+                    backgroundImage: `
+                      linear-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(16, 185, 129, 0.3) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '25px 25px',
                   }}
                 />
-                {/* Radial overlay - coral center */}
+                {/* Aurora overlay - emerald accent */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'radial-gradient(ellipse 60% 60% at 40% 50%, rgba(255,107,107,0.4) 0%, transparent 50%)'
+                    background: `
+                      radial-gradient(ellipse 100% 80% at 20% 0%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+                      radial-gradient(ellipse 80% 60% at 80% 100%, rgba(52, 211, 153, 0.15) 0%, transparent 50%)
+                    `
                   }}
                 />
-                {/* Radial overlay - peachy glow top-right */}
+                {/* Inner highlight */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'radial-gradient(ellipse 50% 50% at 100% 0%, rgba(255,179,71,0.5) 0%, transparent 50%)'
+                    boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 3px rgba(0,0,0,0.2)"
                   }}
                 />
-                {/* Subtle noise texture */}
-                <div 
-                  className="absolute inset-0 opacity-[0.02]"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
-                  }}
-                />
-              </div>
-              
-              {/* Glass Stripes - Very Subtle */}
-              <div className="absolute left-[-28px] top-[-5.26px] flex items-center pointer-events-none">
-                <GlassStripes className="opacity-[0.04]" />
               </div>
 
-              {/* Warm Floating Particles - CSS Optimized */}
+              {/* Floating Particles - Emerald */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(10)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="particle particle-warm absolute rounded-full"
+                    className="particle absolute rounded-full"
                     style={{
-                      width: `${3 + (i % 3)}px`,
-                      height: `${3 + (i % 3)}px`,
-                      left: `${10 + (i * 9)}%`,
-                      top: `${10 + ((i * 17) % 80)}%`,
-                      background: i % 3 === 0 
-                        ? 'rgba(255, 220, 150, 0.4)'
-                        : i % 3 === 1 
-                          ? 'rgba(255, 180, 100, 0.35)'
-                          : 'rgba(255, 255, 200, 0.3)',
-                      boxShadow: `0 0 ${4 + (i % 4)}px rgba(255, 200, 100, 0.3)`,
-                      animationDelay: `${i * 0.4}s`,
+                      width: `${2 + (i % 2)}px`,
+                      height: `${2 + (i % 2)}px`,
+                      left: `${10 + (i * 15)}%`,
+                      top: `${15 + ((i * 17) % 70)}%`,
+                      background: i % 2 === 0 
+                        ? 'rgba(52, 211, 153, 0.5)'
+                        : 'rgba(16, 185, 129, 0.4)',
+                      boxShadow: `0 0 4px rgba(16, 185, 129, 0.3)`,
+                      animation: 'float 5s ease-in-out infinite',
+                      animationDelay: `${i * 0.6}s`,
                     }}
                   />
                 ))}
               </div>
 
-              {/* Notebook Image with Enhanced Shadow */}
+              {/* Notebook Image */}
               <motion.div 
-                className="absolute h-[199px] left-[148px] top-[14px] w-[235px] pointer-events-none"
-                initial={{ opacity: 0, x: 30, rotate: 5 }}
-                animate={{ opacity: 1, x: 0, rotate: 0 }}
+                className="absolute h-[170px] left-[140px] top-[8px] w-[220px] pointer-events-none"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4, duration: 0.6, type: "spring" }}
                 style={{
-                  filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.2))'
+                  filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))'
                 }}
               >
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <img src={imgImage16} className="absolute h-full left-[-15.76%] top-0 w-[127.17%] max-w-none" alt="Notebook" />
-                </div>
+                <img src={imgImage16} className="absolute h-full left-[-15%] top-0 w-[130%] max-w-none object-contain" alt="Notebook" />
               </motion.div>
 
               {/* Content */}
-              <div className="relative z-10 h-full flex flex-col justify-between p-[20px]">
-                {/* Title with Text Shadow */}
+              <div className="relative z-10 h-full flex flex-col justify-between p-[16px]">
                 <motion.h3 
-                  className="font-['Space_Grotesk',sans-serif] font-bold text-[28px] text-white leading-[1.15] tracking-[-0.5px] max-w-[160px]"
-                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.25)' }}
+                  className="font-['Space_Grotesk',sans-serif] font-bold text-[24px] text-white leading-[1.15] tracking-[-0.5px] max-w-[140px]"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, duration: 0.4 }}
@@ -671,144 +670,127 @@ export default function App() {
                   Create Inspections
                 </motion.h3>
 
-                {/* Button - Unified Glass Style */}
                 <motion.button 
-                  className="relative flex gap-[8px] items-center pl-[14px] pr-[8px] py-[10px] rounded-[32px] w-fit overflow-hidden"
+                  className="relative flex gap-[6px] items-center px-[12px] py-[8px] rounded-[8px] w-fit overflow-hidden"
                   style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    background: 'rgba(16, 185, 129, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
                   }}
                   whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   aria-label="Start Creating"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <span className="font-['Inter',sans-serif] font-semibold text-[13px] text-white leading-[1] relative z-10">
+                  <span className="font-['Inter',sans-serif] font-medium text-[11px] text-emerald-300">
                     Start Creating
                   </span>
-                  <div className="bg-white/20 border border-white/30 flex items-center justify-center w-[22px] h-[22px] rounded-full relative z-10">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <path d="M6 12L10 8L6 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 12L10 8L6 4" stroke="rgb(110, 231, 183)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </motion.button>
               </div>
-
-              {/* Subtle Light Sweep - CSS Optimized */}
-              <div
-                className="light-sweep absolute inset-0 pointer-events-none"
-                style={{
-                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)",
-                  animationDelay: "1s",
-                }}
-              />
             </motion.div>
           </div>
 
-          {/* Glass Gallery Card - Premium Glass Treatment */}
+          {/* Glass Gallery Card - Dark Theme */}
           <div className="flex flex-col gap-[10px] items-start justify-end w-full shrink-0 mb-[120px]">
             <motion.div 
-              className="relative h-[222px] w-[345px] overflow-hidden rounded-[20px] shrink-0 cursor-pointer group"
+              className="relative h-[180px] w-[345px] overflow-hidden rounded-[16px] shrink-0 cursor-pointer group"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5, type: "spring" }}
               whileTap={{ scale: 0.98 }}
               style={{
                 boxShadow: `
-                  0 25px 60px rgba(15, 23, 42, 0.2),
-                  0 12px 28px rgba(30, 58, 138, 0.15),
-                  0 4px 12px rgba(59, 130, 246, 0.1)
+                  0 25px 60px rgba(6, 21, 40, 0.5),
+                  0 12px 28px rgba(12, 54, 90, 0.35),
+                  0 4px 12px rgba(0, 0, 0, 0.25),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                  0 0 40px rgba(139, 92, 246, 0.1)
                 `
               }}
             >
-              {/* Rich Mesh Gradient Background - Deep Blues */}
-              <div className="absolute inset-0">
-                {/* Base gradient */}
+              {/* Dark Gradient Background - Purple accent */}
+              <div className="absolute inset-0 rounded-[16px]">
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 20%, #1e40af 40%, #3b82f6 60%, #60a5fa 80%, #93c5fd 100%)'
+                    background: `linear-gradient(135deg, 
+                      #0c1929 0%, 
+                      #0f2744 20%,
+                      #1e1b4b 40%,
+                      #0d2847 60%,
+                      #091e3a 80%,
+                      #061528 100%
+                    )`
                   }}
                 />
-                {/* Radial overlay - deep navy bottom-left */}
+                {/* Tech grid pattern */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px] opacity-[0.1]"
                   style={{
-                    background: 'radial-gradient(ellipse 70% 70% at 0% 100%, rgba(15,23,42,0.7) 0%, transparent 50%)'
+                    backgroundImage: `
+                      linear-gradient(rgba(139, 92, 246, 0.3) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(139, 92, 246, 0.3) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '25px 25px',
                   }}
                 />
-                {/* Radial overlay - electric blue center */}
+                {/* Aurora overlay - purple accent */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(59,130,246,0.4) 0%, transparent 50%)'
+                    background: `
+                      radial-gradient(ellipse 100% 80% at 20% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+                      radial-gradient(ellipse 80% 60% at 80% 100%, rgba(167, 139, 250, 0.15) 0%, transparent 50%)
+                    `
                   }}
                 />
-                {/* Radial overlay - light blue glow top-right */}
+                {/* Inner highlight */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 rounded-[16px]"
                   style={{
-                    background: 'radial-gradient(ellipse 50% 50% at 100% 0%, rgba(147,197,253,0.5) 0%, transparent 50%)'
+                    boxShadow: "inset 0 1px 2px rgba(255,255,255,0.08), inset 0 -1px 3px rgba(0,0,0,0.2)"
                   }}
                 />
-                {/* Subtle noise texture */}
-                <div 
-                  className="absolute inset-0 opacity-[0.02]"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
-                  }}
-                />
-              </div>
-              
-              {/* Glass Stripes - Very Subtle */}
-              <div className="absolute left-[-28px] top-[-5.26px] flex items-center pointer-events-none">
-                <GlassStripes className="opacity-[0.04]" />
               </div>
 
-              {/* Cool Blue Sparkle Particles - CSS Optimized */}
+              {/* Floating Particles - Purple */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(12)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="particle particle-cool absolute"
+                    className="particle absolute rounded-full"
                     style={{
-                      width: `${2 + (i % 3)}px`,
-                      height: `${2 + (i % 3)}px`,
-                      left: `${8 + (i * 8)}%`,
-                      top: `${8 + ((i * 15) % 84)}%`,
-                      background: i % 4 === 0 
-                        ? 'rgba(147, 197, 253, 0.6)'
-                        : i % 4 === 1 
-                          ? 'rgba(96, 165, 250, 0.5)'
-                          : i % 4 === 2
-                            ? 'rgba(255, 255, 255, 0.5)'
-                            : 'rgba(59, 130, 246, 0.4)',
-                      borderRadius: i % 3 === 0 ? '50%' : '2px',
-                      boxShadow: `0 0 ${4 + (i % 3)}px rgba(147, 197, 253, 0.4)`,
-                      transform: i % 3 === 0 ? 'rotate(45deg)' : 'none',
-                      animationDelay: `${i * 0.35}s`,
+                      width: `${2 + (i % 2)}px`,
+                      height: `${2 + (i % 2)}px`,
+                      left: `${10 + (i * 15)}%`,
+                      top: `${15 + ((i * 17) % 70)}%`,
+                      background: i % 2 === 0 
+                        ? 'rgba(167, 139, 250, 0.5)'
+                        : 'rgba(139, 92, 246, 0.4)',
+                      boxShadow: `0 0 4px rgba(139, 92, 246, 0.3)`,
+                      animation: 'float 5s ease-in-out infinite',
+                      animationDelay: `${i * 0.6}s`,
                     }}
                   />
                 ))}
               </div>
 
-              {/* Gallery Images with Enhanced Shadow */}
+              {/* Gallery Images */}
               <motion.div 
-                className="absolute h-[175px] left-[118.78px] top-[33px] w-[315.446px] pointer-events-none"
-                initial={{ opacity: 0, x: 30 }}
+                className="absolute h-[150px] left-[130px] top-[20px] w-[250px] pointer-events-none"
+                initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.6, type: "spring" }}
                 style={{
-                  filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.3))'
+                  filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))'
                 }}
               >
-                <div className="absolute h-[92px] left-[-13.78px] top-[69px] w-[257px]">
+                <div className="absolute h-[80px] left-[-10px] top-[60px] w-[220px]">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <img src={imgImage17} className="absolute h-[173.27%] left-[0.43%] top-[-73.27%] w-[99.57%] max-w-none" alt="" />
+                    <img src={imgImage17} className="absolute h-[180%] left-[0%] top-[-80%] w-[100%] max-w-none object-cover rounded-lg" alt="" />
                   </div>
                 </div>
                 <div className="absolute h-[27px] left-[105.22px] top-[35px] w-[84px]">
@@ -819,11 +801,10 @@ export default function App() {
               </motion.div>
 
               {/* Content */}
-              <div className="relative z-10 h-full flex flex-col justify-between p-[20px]">
-                {/* Title with Text Shadow */}
+              <div className="relative z-10 h-full flex flex-col justify-between p-[16px]">
                 <motion.h3 
-                  className="font-['Space_Grotesk',sans-serif] font-bold text-[28px] text-white leading-[1.15] tracking-[-0.5px] max-w-[160px]"
-                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}
+                  className="font-['Space_Grotesk',sans-serif] font-bold text-[24px] text-white leading-[1.15] tracking-[-0.5px] max-w-[140px]"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, duration: 0.4 }}
@@ -831,42 +812,26 @@ export default function App() {
                   See It. Capture It.
                 </motion.h3>
 
-                {/* Button - Glass Enhanced */}
                 <motion.button 
-                  className="relative flex gap-[8px] items-center pl-[14px] pr-[8px] py-[10px] rounded-[32px] w-fit overflow-hidden"
+                  className="relative flex gap-[6px] items-center px-[12px] py-[8px] rounded-[8px] w-fit overflow-hidden"
                   style={{
-                    background: 'rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.25)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
                   }}
-                  whileHover={{ scale: 1.03, y: -1, background: 'rgba(255,255,255,0.2)' }}
-                  whileTap={{ scale: 0.97, rotate: -1 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  whileTap={{ scale: 0.97 }}
                   aria-label="Get started"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <span className="font-['Inter',sans-serif] font-semibold text-[13px] text-white leading-[1] relative z-10">
+                  <span className="font-['Inter',sans-serif] font-medium text-[11px] text-violet-300">
                     Get started
                   </span>
-                  <div className="bg-white/20 border border-white/30 flex items-center justify-center w-[22px] h-[22px] rounded-full relative z-10">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <path d="M6 12L10 8L6 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 12L10 8L6 4" stroke="rgb(196, 181, 253)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </motion.button>
               </div>
-
-              {/* Subtle Light Sweep - CSS Optimized */}
-              <div
-                className="light-sweep absolute inset-0 pointer-events-none"
-                style={{
-                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)",
-                  animationDelay: "2s",
-                }}
-              />
             </motion.div>
           </div>
 
