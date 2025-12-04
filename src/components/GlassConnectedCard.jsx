@@ -69,7 +69,7 @@ export const GlassConnectedCard = ({
 
   return (
     <motion.div 
-      className="relative w-[345px] overflow-hidden rounded-[20px] shrink-0"
+      className="relative w-[345px] h-[140px] overflow-hidden rounded-[16px] shrink-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1, duration: 0.5, type: "spring" }}
@@ -244,77 +244,12 @@ export const GlassConnectedCard = ({
         }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 p-[20px]">
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-[8px]">
-          {/* Connected badge - Dark glass style for better contrast */}
-          <div 
-            className="flex items-center gap-[6px] px-[10px] py-[5px] rounded-full"
-            style={{
-              background: 'rgba(0, 0, 0, 0.25)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(74, 222, 128, 0.5)',
-            }}
-          >
-            <motion.div 
-              className="w-[6px] h-[6px] rounded-full"
-              style={{ background: '#4ade80' }}
-              animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            <span className="font-['Inter',sans-serif] font-semibold text-[11px] text-white">
-              Connected
-            </span>
-          </div>
-
-          {/* Battery indicator - Dark glass style for better contrast */}
-          <div 
-            className="flex items-center gap-[8px] px-[10px] py-[5px] rounded-full"
-            style={{
-              background: 'rgba(0, 0, 0, 0.25)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-            }}
-          >
-            <div 
-              className="relative w-[24px] h-[12px] rounded-[3px] overflow-hidden"
-              style={{
-                border: '1.5px solid rgba(255, 255, 255, 0.5)',
-              }}
-            >
-              <motion.div 
-                className="absolute left-[1px] top-[1px] bottom-[1px] rounded-[2px]"
-                style={{
-                  width: `${batteryLevel}%`,
-                  maxWidth: 'calc(100% - 2px)',
-                  background: getBatteryFillColor(),
-                }}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(batteryLevel, 100)}%` }}
-                transition={{ duration: 1, delay: 0.3 }}
-              />
-              {/* Battery tip */}
-              <div 
-                className="absolute right-[-4px] top-[2px] w-[2px] h-[6px] rounded-r-[1px]"
-                style={{ background: 'rgba(255, 255, 255, 0.5)' }}
-              />
-            </div>
-            <span 
-              className="font-['Inter',sans-serif] font-bold text-[12px]"
-              style={{ color: getBatteryTextColor() }}
-            >
-              {batteryLevel}%
-            </span>
-          </div>
-        </div>
-
-        {/* Lottie Animation Area - Interactive */}
+      {/* Content - Compact layout to match disconnected card height */}
+      <div className="relative z-10 p-[16px] h-full flex">
+        {/* Left side - Lottie Animation */}
         <div 
           ref={containerRef}
-          className="relative h-[150px] flex items-center justify-center my-[4px] cursor-grab active:cursor-grabbing select-none"
+          className="relative w-[120px] h-full flex items-center justify-center cursor-grab active:cursor-grabbing select-none shrink-0"
           onMouseDown={handleDragStart}
           onMouseMove={handleDragMove}
           onMouseUp={handleDragEnd}
@@ -325,10 +260,10 @@ export const GlassConnectedCard = ({
         >
           {/* Soft glow behind glass */}
           <div 
-            className="absolute inset-[20px] rounded-full pointer-events-none"
+            className="absolute inset-0 rounded-full pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse at center, rgba(133, 88, 242, 0.2) 0%, transparent 70%)',
-              filter: 'blur(20px)',
+              background: 'radial-gradient(ellipse at center, rgba(133, 88, 242, 0.15) 0%, transparent 70%)',
+              filter: 'blur(15px)',
             }}
           />
           
@@ -340,17 +275,16 @@ export const GlassConnectedCard = ({
               loop={false}
               autoplay={false}
               style={{ 
-                width: '220px', 
-                height: '150px',
-                filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.3))',
+                width: '140px', 
+                height: '90px',
+                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3))',
               }}
               initialSegment={[0, 1]}
             />
           ) : (
-            // Fallback loading state
-            <div className="w-[220px] h-[150px] flex items-center justify-center">
+            <div className="w-[100px] h-[70px] flex items-center justify-center">
               <motion.div 
-                className="w-[40px] h-[40px] rounded-full border-2 border-t-transparent"
+                className="w-[24px] h-[24px] rounded-full border-2 border-t-transparent"
                 style={{ borderColor: 'rgba(133, 88, 242, 0.4)', borderTopColor: 'transparent' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -359,53 +293,105 @@ export const GlassConnectedCard = ({
           )}
         </div>
 
-        {/* Device Info */}
-        <div className="text-center mb-[14px]">
-          <p className="font-['Inter',sans-serif] text-[10px] mb-[3px] text-white/40 uppercase tracking-wider">
-            {deviceId}
-          </p>
-          <h3 className="font-['Space_Grotesk',sans-serif] font-semibold text-[17px] text-white">
-            {deviceName}
-          </h3>
-        </div>
+        {/* Right side - Info and buttons */}
+        <div className="flex-1 flex flex-col justify-between ml-[8px]">
+          {/* Top row - Status badges */}
+          <div className="flex items-center justify-between">
+            {/* Connected badge */}
+            <div 
+              className="flex items-center gap-[4px] px-[8px] py-[3px] rounded-full"
+              style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(74, 222, 128, 0.5)',
+              }}
+            >
+              <motion.div 
+                className="w-[5px] h-[5px] rounded-full"
+                style={{ background: '#4ade80' }}
+                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <span className="font-['Inter',sans-serif] font-semibold text-[9px] text-white">
+                Connected
+              </span>
+            </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-[10px]">
-          {/* Settings button */}
-          <motion.button
-            className="flex-1 flex items-center justify-center gap-[6px] py-[11px] rounded-[12px]"
-            style={{
-              background: 'rgba(255, 255, 255, 0.12)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-            }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onSettings}
-          >
-            <Settings className="w-[16px] h-[16px] text-white/80" strokeWidth={2} />
-            <span className="font-['Inter',sans-serif] font-medium text-[12px] text-white/80">
-              Settings
-            </span>
-          </motion.button>
+            {/* Battery indicator */}
+            <div 
+              className="flex items-center gap-[4px] px-[8px] py-[3px] rounded-full"
+              style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              <div 
+                className="relative w-[18px] h-[9px] rounded-[2px] overflow-hidden"
+                style={{ border: '1px solid rgba(255, 255, 255, 0.5)' }}
+              >
+                <motion.div 
+                  className="absolute left-[1px] top-[1px] bottom-[1px] rounded-[1px]"
+                  style={{
+                    width: `${batteryLevel}%`,
+                    maxWidth: 'calc(100% - 2px)',
+                    background: getBatteryFillColor(),
+                  }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(batteryLevel, 100)}%` }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                />
+              </div>
+              <span className="font-['Inter',sans-serif] font-bold text-[10px] text-white">
+                {batteryLevel}%
+              </span>
+            </div>
+          </div>
 
-          {/* Disconnect button */}
-          <motion.button
-            className="flex-1 flex items-center justify-center gap-[6px] py-[11px] rounded-[12px]"
-            style={{
-              background: 'rgba(239, 68, 68, 0.15)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-            }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onDisconnect}
-          >
-            <Bluetooth className="w-[16px] h-[16px] text-red-400" strokeWidth={2} />
-            <span className="font-['Inter',sans-serif] font-medium text-[12px] text-red-400">
-              Disconnect
-            </span>
-          </motion.button>
+          {/* Device Info */}
+          <div>
+            <p className="font-['Inter',sans-serif] text-[8px] text-white/40 uppercase tracking-wider">
+              {deviceId}
+            </p>
+            <h3 className="font-['Space_Grotesk',sans-serif] font-semibold text-[14px] text-white leading-tight">
+              {deviceName}
+            </h3>
+          </div>
+
+          {/* Action buttons - Compact */}
+          <div className="flex gap-[8px]">
+            <motion.button
+              className="flex-1 flex items-center justify-center gap-[4px] py-[7px] rounded-[8px]"
+              style={{
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onSettings}
+            >
+              <Settings className="w-[12px] h-[12px] text-white/80" strokeWidth={2} />
+              <span className="font-['Inter',sans-serif] font-medium text-[10px] text-white/80">
+                Settings
+              </span>
+            </motion.button>
+
+            <motion.button
+              className="flex-1 flex items-center justify-center gap-[4px] py-[7px] rounded-[8px]"
+              style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onDisconnect}
+            >
+              <Bluetooth className="w-[12px] h-[12px] text-red-400" strokeWidth={2} />
+              <span className="font-['Inter',sans-serif] font-medium text-[10px] text-red-400">
+                Disconnect
+              </span>
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
