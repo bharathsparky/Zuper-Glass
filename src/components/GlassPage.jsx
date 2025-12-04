@@ -504,64 +504,137 @@ const GlassDeviceCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        // Dark mode: Deep teal/cyan gradient
-        // Light mode: Darker teal gradient for better white text contrast
-        background: isDark 
-          ? `linear-gradient(135deg, 
-              rgba(6, 78, 117, 0.95) 0%, 
-              rgba(14, 116, 144, 0.9) 25%,
-              rgba(21, 128, 156, 0.88) 50%,
-              rgba(6, 95, 124, 0.92) 75%,
-              rgba(8, 62, 97, 0.95) 100%
-            )`
-          : `linear-gradient(135deg, 
-              #155e75 0%, 
-              #0e7490 25%,
-              #0891b2 50%,
-              #0e7490 75%,
-              #164e63 100%
-            )`,
-        boxShadow: isDark 
-          ? `0 20px 50px rgba(6, 78, 117, 0.3),
-             0 8px 20px rgba(14, 116, 144, 0.2),
-             inset 0 1px 0 rgba(255, 255, 255, 0.15)`
-          : `0 20px 50px rgba(21, 94, 117, 0.25),
-             0 8px 20px rgba(14, 116, 144, 0.2),
-             inset 0 1px 0 rgba(255, 255, 255, 0.15)`,
+        // Deep dark gradient - matching homepage card
+        background: `linear-gradient(135deg, 
+          #0c1929 0%, 
+          #0f2744 20%,
+          #12365a 40%,
+          #0d2847 60%,
+          #091e3a 80%,
+          #061528 100%
+        )`,
+        boxShadow: `
+          0 25px 60px rgba(6, 21, 40, 0.5),
+          0 12px 28px rgba(12, 54, 90, 0.35),
+          0 4px 12px rgba(0, 0, 0, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 0 40px rgba(6, 182, 212, 0.15)
+        `,
       }}
     >
-      {/* Gradient overlays */}
+      {/* Tech grid pattern */}
       <div 
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none opacity-[0.12]"
         style={{
-          background: isDark 
-            ? `radial-gradient(ellipse 80% 60% at 20% 20%, rgba(133, 88, 242, 0.15) 0%, transparent 50%),
-               radial-gradient(ellipse 60% 50% at 80% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 50%)`
-            : `radial-gradient(ellipse 80% 60% at 20% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-               radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%)`,
+          backgroundImage: `
+            linear-gradient(rgba(6, 182, 212, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(6, 182, 212, 0.3) 1px, transparent 1px)
+          `,
+          backgroundSize: '25px 25px',
         }}
       />
 
-      {/* Floating particles */}
+      {/* Aurora overlay */}
+      <motion.div 
+        className="absolute inset-0 pointer-events-none"
+        animate={{
+          background: [
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 50% 0%, rgba(133, 88, 242, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 20% 100%, rgba(6, 182, 212, 0.15) 0%, transparent 50%)',
+            'radial-gradient(ellipse 100% 80% at 20% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 50%), radial-gradient(ellipse 80% 60% at 80% 100%, rgba(133, 88, 242, 0.15) 0%, transparent 50%)',
+          ],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Floating particles - Minimal */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(12)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute rounded-full"
             style={{
-              width: `${2 + (i % 2)}px`,
-              height: `${2 + (i % 2)}px`,
-              left: `${5 + (i * 8)}%`,
-              top: `${15 + ((i * 19) % 70)}%`,
-              background: isDark 
-                ? (i % 2 === 0 ? 'rgba(255, 255, 255, 0.35)' : 'rgba(133, 88, 242, 0.4)')
-                : (i % 2 === 0 ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.3)'),
+              width: `${1.5 + (i % 2)}px`,
+              height: `${1.5 + (i % 2)}px`,
+              left: `${10 + (i * 12) % 80}%`,
+              top: `${15 + (i * 11) % 70}%`,
+              background: i % 2 === 0 
+                ? 'rgba(34, 211, 238, 0.6)'
+                : 'rgba(167, 139, 250, 0.5)',
+              boxShadow: i % 2 === 0 
+                ? '0 0 4px rgba(34, 211, 238, 0.4)'
+                : '0 0 4px rgba(167, 139, 250, 0.3)',
             }}
-            animate={{ y: [0, -12 - (i % 8), 0], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 3 + (i % 2), repeat: Infinity, delay: i * 0.15 }}
+            animate={{ y: [0, -12, 0], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 5 + (i % 3), repeat: Infinity, delay: i * 0.8, ease: "easeInOut" }}
           />
         ))}
       </div>
+
+      {/* Energy pulse rings - Slow and subtle */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[0, 1].map((i) => (
+          <motion.div
+            key={`ring-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: '140px',
+              height: '140px',
+              left: '50%',
+              top: '45%',
+              marginLeft: '-70px',
+              marginTop: '-70px',
+              border: '1px solid rgba(6, 182, 212, 0.25)',
+              boxShadow: '0 0 15px rgba(6, 182, 212, 0.15)',
+            }}
+            animate={{
+              scale: [1, 2.2],
+              opacity: [0.4, 0],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              delay: i * 3,
+              ease: "easeOut",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Energy line sweep */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+        <motion.path
+          d="M 0 60 Q 80 40, 172 65 T 345 50"
+          fill="none"
+          stroke="url(#energyGradGlass)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ 
+            pathLength: [0, 1, 1, 0],
+            opacity: [0, 0.6, 0.6, 0],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            repeatDelay: 10,
+            ease: "easeInOut",
+          }}
+        />
+        <defs>
+          <linearGradient id="energyGradGlass" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
+            <stop offset="20%" stopColor="rgba(34, 211, 238, 0.8)" />
+            <stop offset="50%" stopColor="rgba(99, 102, 241, 0.9)" />
+            <stop offset="80%" stopColor="rgba(167, 139, 250, 0.8)" />
+            <stop offset="100%" stopColor="rgba(167, 139, 250, 0)" />
+          </linearGradient>
+        </defs>
+      </svg>
 
       <div className="relative z-10 p-[16px]">
         {/* Header */}
