@@ -159,27 +159,28 @@ export default function App() {
   const lightAccentLight = '#0ea5e9';  // sky-500 - lighter variant
   
   const theme = {
-    // Backgrounds - Light mode uses warm neutral tones
-    pageBg: isDarkMode 
-      ? `radial-gradient(ellipse 100% 80% at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-         radial-gradient(ellipse 80% 60% at 80% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
-         radial-gradient(ellipse 60% 80% at 20% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
-         linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`
-      : `radial-gradient(ellipse 100% 80% at 50% 0%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
-         linear-gradient(180deg, #fafbfc 0%, #f4f6f8 50%, #eef1f5 100%)`,
+    // Backgrounds - ALWAYS dark outside the phone for better focus
+    pageBg: `radial-gradient(ellipse 100% 80% at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+       radial-gradient(ellipse 80% 60% at 80% 50%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+       radial-gradient(ellipse 60% 80% at 20% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
+       linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`,
+    // Phone internal background - theme aware
     phoneBg: isDarkMode
       ? 'linear-gradient(180deg, #1e293b 0%, #0f172a 30%, #020617 60%, #0f172a 100%)'
       : 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 30%, #F1F5F9 60%, #F8FAFC 100%)',
+    // Phone shadow - enhanced for light mode on dark background
     phoneShadow: isDarkMode
       ? `0 50px 100px -20px rgba(0, 0, 0, 0.5),
          0 30px 60px -15px rgba(0, 0, 0, 0.4),
          0 0 0 1px rgba(255, 255, 255, 0.05),
          inset 0 1px 0 rgba(255, 255, 255, 0.1)`
-      : `0 50px 100px -20px rgba(100, 116, 139, 0.12),
-         0 30px 60px -15px rgba(0, 0, 0, 0.06),
-         0 0 0 1px rgba(0, 0, 0, 0.02),
+      : `0 50px 100px -20px rgba(0, 0, 0, 0.4),
+         0 30px 60px -15px rgba(0, 0, 0, 0.3),
+         0 0 0 1px rgba(255, 255, 255, 0.1),
+         0 0 80px rgba(255, 255, 255, 0.1),
          inset 0 1px 0 rgba(255, 255, 255, 0.9)`,
-    phoneBorder: isDarkMode ? '8px solid rgba(255, 255, 255, 0.05)' : '8px solid rgba(226, 232, 240, 0.8)',
+    // Phone border - subtle glow for light mode
+    phoneBorder: isDarkMode ? '8px solid rgba(255, 255, 255, 0.05)' : '8px solid rgba(255, 255, 255, 0.15)',
     // Text colors - WCAG AA compliant (4.5:1 contrast ratio minimum)
     textPrimary: isDarkMode ? '#f8fafc' : '#1e293b',      // Main text - high contrast
     textSecondary: isDarkMode ? '#cbd5e1' : '#334155',    // Secondary - still readable (slate-700)
