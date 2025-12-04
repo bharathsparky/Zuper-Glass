@@ -1012,7 +1012,7 @@ export const InspectionDetailsPage = ({
         >
           {/* Zuper Logo */}
           <img 
-            src="/assets/zuper-logo-new.svg" 
+            src="/assets/logo-zuper.png" 
             alt="Zuper" 
             className="w-[20px] h-[20px] object-contain"
           />
